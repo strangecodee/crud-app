@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Users - User Management</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" />
+  <link rel="stylesheet" href="/style.css" />
+</head>
+
+<body class="bg-light">
+
+  <div class="container-custom fade-in-up">
+    <h1 class="text-center mb-4">
+      <i class="bi bi-people-fill text-primary me-2"></i>
+      All Users
+    </h1>
+
+    <div class="mb-4 d-flex justify-content-between align-items-center">
+      <a href="/add" class="btn btn-success">
+        <i class="bi bi-plus-circle-fill me-2"></i>
+        Add New User
+      </a>
+      <div>
+        <a href="/export" class="btn btn-primary me-2">
+          <i class="bi bi-download me-2"></i>
+          Export CSV
+        </a>
+        <form action="/upload" method="POST" enctype="multipart/form-data" class="d-inline">
+          <input type="file" name="file" id="fileInput" class="d-none" accept=".csv,.txt,.json" />
+          <button type="button" class="btn btn-info" onclick="document.getElementById('fileInput').click()">
+            <i class="bi bi-upload me-2"></i>
+            Upload File
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Search and Filter -->
+    <div class="mb-4">
+      <form method="GET" action="/users" class="row g-3">
+        <div class="col-md-6">
+          <input type="text" name="search" class="form-control" placeholder="Search by name or email..." value="<%= (typeof search !== 'undefined' ? search : '') %>" />
+        </div>
+        <div class="col-md-3">
+          <select name="filter" class="form-select">
+            <option value="">All Fields</option>
+            <option value="name" <%= (typeof filter !== 'undefined' && filter === 'name') ? 'selected' : '' %>>Name Only</option>
+            <option value="email" <%= (typeof filter !== 'undefined' && filter === 'email') ? 'selected' : '' %>>Email Only</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <button type="submit" class="btn btn-outline-primary w-100">
+            <i class="bi bi-search me-2"></i>
+            Search
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div class="card">
+      <div class="card-body p-0">
+        <table class="table table-hover mb-0 table-custom">
+          <thead>
+            <tr>
+              <th class="text-center">
+                <i class="bi bi-hash text-primary me-1"></i>
+                ID
+              </th>
+              <th>
+                <i class="bi bi-person-fill text-primary me-1"></i>
+                Name
+              </th>
+              <th>
+                <i class="bi bi-envelope-fill text-primary me-1"></i>
+                Email
+              </th>
+              <th class="text-center">
+                <i class="bi bi-gear-fill text-primary me-1"></i>
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (users.length === 0) { %>
+              <tr>
+                <td colspan="4" class="text-center py-5">
+                  <div class="text-muted">
+                    <h5>
+                      <i class="bi bi-inbox-fill me-2"></i>
+                      No users found
+                    </h5>
+                    <p>Start by adding your first user!</p>
+                    <a href="/add" class="btn btn-primary">
+                      <i class="bi bi-plus-circle-fill me-2"></i>
+                      Add First User
+                    </a>
+                  </div>
+                </td>
+              </tr>
+            <% } else { users.forEach(user => { %>
+              <tr>
+                <td class="text-center fw-bold">#<%= user.id %></td>
+                <td class="fw-semibold"><%= user.name %></td>
+                <td><%= user.email %></td>
+                <td class="text-center">
+                  <div class="btn-group" role="group">
+                    <button class="btn btn-info btn-sm" onclick="viewUser('<%= user.id %>', '<%= user.name %>', '<%= user.email %>')" title="View Details">
+                      <i class="bi bi-eye-fill"></i>
+                    </button>
+                    <button class="btn btn-warning btn-sm" onclick="openEditModal('<%= user.id %>', '<%= user.name %>', '<%= user.email %>')" title="Edit User">
+                      <i class="bi bi-pencil-fill"></i>
+                    </button>
+                    <form action="/delete/<%= user.id %>" method="POST" style="display:inline;">
+                      <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete <%= user.name %>?')" title="Delete User">
+                        <i class="bi bi-trash-fill"></i>
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            <% }) } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <% if (totalPages > 1) { %>
+      <nav aria-label="User pagination" class="mt-4">
+        <ul class="pagination justify-content-center">
+          <% if (currentPage > 1) { %>
+            <li class="page-item">
+              <a class="page-link" href="?page=<%= currentPage - 1 %>&search=<%= (typeof search !== 'undefined' ? search : '') %>&filter=<%= (typeof filter !== 'undefined' ? filter : '') %>&limit=<%= limit %>">Previous</a>
+            </li>
+          <% } %>
+
+          <% for (let i = Math.max(1, currentPage - 2); i <= Math.min(totalPages, currentPage + 2); i++) { %>
+            <li class="page-item <%= i === currentPage ? 'active' : '' %>">
+              <a class="page-link" href="?page=<%= i %>&search=<%= (typeof search !== 'undefined' ? search : '') %>&filter=<%= (typeof filter !== 'undefined' ? filter : '') %>&limit=<%= limit %>"><%= i %></a>
+            </li>
+          <% } %>
+
+          <% if (currentPage < totalPages) { %>
+            <li class="page-item">
+              <a class="page-link" href="?page=<%= currentPage + 1 %>&search=<%= (typeof search !== 'undefined' ? search : '') %>&filter=<%= (typeof filter !== 'undefined' ? filter : '') %>&limit=<%= limit %>">Next</a>
+            </li>
+          <% } %>
+        </ul>
+      </nav>
+    <% } %>
+
+    <!-- Upload Status Messages -->
+    <% if (typeof upload !== 'undefined' && upload) { %>
+      <% if (upload === 'success') { %>
+        <div class="alert alert-success alert-dismissible fade show mt-3" role="alert" id="successAlert">
+          <i class="bi bi-check-circle-fill me-2"></i>
+          File uploaded and processed successfully!
+          <% if (typeof imported !== 'undefined' && imported) { %>
+            <br><small>Imported: <%= imported %> users, Skipped: <%= skipped || 0 %>, Errors: <%= errors || 0 %></small>
+          <% } %>
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <script>
+          setTimeout(function() {
+            window.location.href = '/users';
+          }, 3000); // Redirect after 3 seconds
+        </script>
+      <% } else if (upload === 'no-file') { %>
+        <div class="alert alert-warning alert-dismissible fade show mt-3" role="alert">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i>
+          No file was selected for upload.
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      <% } else if (upload === 'invalid-type') { %>
+        <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i>
+          Invalid file type. Please upload a CSV file.
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      <% } else if (upload === 'file-too-large') { %>
+        <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i>
+          File is too large. Maximum size is 5MB.
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      <% } else if (upload === 'empty-file') { %>
+        <div class="alert alert-warning alert-dismissible fade show mt-3" role="alert">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i>
+          The uploaded file is empty.
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      <% } else if (upload === 'insufficient-data') { %>
+        <div class="alert alert-warning alert-dismissible fade show mt-3" role="alert">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i>
+          CSV file must contain at least a header row and one data row.
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      <% } else if (upload === 'missing-columns') { %>
+        <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i>
+          CSV file must contain 'name' and 'email' columns.
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      <% } else if (upload === 'partial-success') { %>
+        <div class="alert alert-warning alert-dismissible fade show mt-3" role="alert">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i>
+          File processed with some errors. Check the console logs for details.
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      <% } else if (upload === 'no-new-users') { %>
+        <div class="alert alert-info alert-dismissible fade show mt-3" role="alert">
+          <i class="bi bi-info-circle-fill me-2"></i>
+          No new users were imported. All records may already exist or be invalid.
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      <% } else if (upload === 'server-error') { %>
+        <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i>
+          Server error occurred during file processing. Please try again.
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      <% } %>
+    <% } %>
+
+    <div class="text-center mt-4">
+      <p class="text-muted">Showing <%= users.length %> of <%= totalUsers %> users</p>
+      <a href="/" class="nav-link">← Back to Dashboard</a>
+    </div>
+  </div>
+
+  <!-- View Modal -->
+  <div class="modal fade" id="viewModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header"><h5>User Details</h5></div>
+        <div class="modal-body" id="viewUserBody"></div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Modal -->
+  <div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form id="editForm">
+          <div class="modal-header"><h5>Edit User</h5></div>
+          <div class="modal-body">
+            <input type="hidden" id="editId" />
+            <div class="mb-3">
+              <label>Name</label>
+              <input type="text" id="editName" class="form-control" required />
+            </div>
+            <div class="mb-3">
+              <label>Email</label>
+              <input type="email" id="editEmail" class="form-control" required />
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-success">Save</button>
+            <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    function viewUser(id, name, email) {
+      document.getElementById('viewUserBody').innerHTML =
+        `<strong>ID:</strong> ${id}<br>
+         <strong>Name:</strong> ${name}<br>
+         <strong>Email:</strong> ${email}`;
+      new bootstrap.Modal(document.getElementById('viewModal')).show();
+    }
+
+    function openEditModal(id, name, email) {
+      document.getElementById('editId').value = id;
+      document.getElementById('editName').value = name;
+      document.getElementById('editEmail').value = email;
+      new bootstrap.Modal(document.getElementById('editModal')).show();
+    }
+
+    document.getElementById('editForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const id = document.getElementById('editId').value;
+      const name = document.getElementById('editName').value;
+      const email = document.getElementById('editEmail').value;
+
+      const response = await fetch(`/update/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email }),
+      });
+
+      if (response.ok) {
+        alert('User updated successfully');
+        location.reload();
+      } else {
+        alert('Error updating user');
+      }
+    });
+
+    // File upload handling
+    document.getElementById('fileInput').addEventListener('change', function() {
+      if (this.files.length > 0) {
+        console.log('File selected:', this.files[0].name);
+        // Find the parent form and submit it
+        const form = this.closest('form');
+        if (form) {
+          console.log('Submitting form to:', form.action);
+          form.submit();
+        } else {
+          console.error('Form not found');
+        }
+      }
+    });
+  </script>
+</body>
+</html>  
