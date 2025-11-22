@@ -1,0 +1,66 @@
+name: Node.js CI/CD Deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run server start smoke test
+      run: |
+        node server.js &
+        sleep 10
+        kill $!
+
+    - name: Deploy to Ubuntu server
+      uses: appleboy/ssh-action@v0.1.8
+      with:
+        host: ${{ secrets.SERVER_IP }}
+        username: ${{ secrets.SERVER_USER }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          set -e
+          cd ~/your-project-folder || exit 1
+
+          echo "Pull latest code"
+          git pull origin main
+
+          echo "Install dependencies"
+          npm ci
+
+          echo "Setup systemd service file"
+          cat <<EOF | sudo tee /etc/systemd/system/nodeapp.service
+          [Unit]
+          Description=Node.js Application
+          After=network.target
+
+          [Service]
+          ExecStart=/usr/bin/node /home/${{ secrets.SERVER_USER }}/your-project-folder/server.js
+          Restart=always
+          User=${{ secrets.SERVER_USER }}
+          Environment=PORT=3000
+          WorkingDirectory=/home/${{ secrets.SERVER_USER }}/your-project-folder
+
+          [Install]
+          WantedBy=multi-user.target
+          EOF
+
+          echo "Reload systemd and start service"
+          sudo systemctl daemon-reload
+          sudo systemctl enable nodeapp.service
+          sudo systemctl restart nodeapp.service
