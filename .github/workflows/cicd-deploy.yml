@@ -35,7 +35,7 @@ jobs:
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
           set -e
-          cd ~/your-project-folder || exit 1
+          cd ~/CRUD || exit 1
 
           echo "Pull latest code"
           git pull origin main
