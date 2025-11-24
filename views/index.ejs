@@ -16,7 +16,7 @@
         <i class="bi bi-bar-chart-line-fill text-primary me-2"></i>
         User Management Dashboard
       </h1>
-      <% if (currentUser) { %>
+      <% if (typeof currentUser !== 'undefined' && currentUser && currentUser.username) { %>
         <form action="/logout" method="POST" class="d-flex align-items-center gap-2">
           <span class="text-muted small">Logged in as <strong><%= currentUser.username %></strong></span>
           <button type="submit" class="btn btn-outline-secondary btn-sm">
