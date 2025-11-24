@@ -11,10 +11,21 @@
 <body class="bg-light">
 
   <div class="container-custom fade-in-up">
-    <h1 class="text-center mb-4">
-      <i class="bi bi-bar-chart-line-fill text-primary me-2"></i>
-      User Management Dashboard
-    </h1>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h1 class="mb-0">
+        <i class="bi bi-bar-chart-line-fill text-primary me-2"></i>
+        User Management Dashboard
+      </h1>
+      <% if (currentUser) { %>
+        <form action="/logout" method="POST" class="d-flex align-items-center gap-2">
+          <span class="text-muted small">Logged in as <strong><%= currentUser.username %></strong></span>
+          <button type="submit" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-box-arrow-right me-1"></i>
+            Logout
+          </button>
+        </form>
+      <% } %>
+    </div>
 
     <div class="dashboard-links">
       <a href="/add" class="dashboard-btn">
@@ -32,15 +43,87 @@
     </div>
 
     <div class="stats">
-      <h2>
+      <h2 class="mb-3">
         <i class="bi bi-graph-up text-success me-2"></i>
         Quick Stats
-      <p>Total Users: <strong><%= users ? users.length : 0 %></strong></p>
-      <div class="mt-3">
-        <small class="text-muted">Last updated: <%= new Date().toLocaleString() %></small>
+      </h2>
+
+      <div class="row g-3">
+        <div class="col-md-4">
+          <div class="card shadow-sm text-center h-100">
+            <div class="card-body">
+              <h5 class="card-title">Total Users</h5>
+              <p class="display-6 mb-0"><%= typeof totalUsers !== 'undefined' ? totalUsers : 0 %></p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card shadow-sm text-center h-100">
+            <div class="card-body">
+              <h5 class="card-title">New in Last 7 Days</h5>
+              <p class="display-6 mb-0"><%= typeof newUsersLast7 !== 'undefined' ? newUsersLast7 : 0 %></p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card shadow-sm text-center h-100">
+            <div class="card-body">
+              <h5 class="card-title">New in Last 30 Days</h5>
+              <p class="display-6 mb-0"><%= typeof newUsersLast30 !== 'undefined' ? newUsersLast30 : 0 %></p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-4">
+        <small class="text-muted">Dashboard updated at: <%= new Date().toLocaleString() %></small>
+      </div>
+    </div>
+
+    <div class="mt-5">
+      <h2 class="mb-3">
+        <i class="bi bi-clock-history text-primary me-2"></i>
+        Recent Users
+      </h2>
+      <div class="card shadow-sm">
+        <div class="card-body p-0">
+          <% if (recentUsers && recentUsers.length) { %>
+            <table class="table mb-0 table-custom">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Created At</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% recentUsers.forEach(function(user) { %>
+                  <tr>
+                    <td>#<%= user.id %></td>
+                    <td><%= user.name %></td>
+                    <td><%= user.email %></td>
+                    <td><%= user.createdAt ? user.createdAt.toLocaleString() : '-' %></td>
+                  </tr>
+                <% }); %>
+              </tbody>
+            </table>
+          <% } else { %>
+            <div class="p-4 text-center text-muted">
+              <i class="bi bi-inbox me-2"></i>
+              No users found yet. Start by adding a new user.
+            </div>
+          <% } %>
+        </div>
       </div>
     </div>
   </div>
+
+  <footer class="mt-5 py-3 border-top text-center text-muted small">
+    <div class="container">
+      <span>© <%= new Date().getFullYear() %> User Management Dashboard · Built with Express, Sequelize &amp; EJS</span>
+    </div>
+  </footer>
 
 </body>
 </html>

@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs";
+import session from "express-session";
 import sequelize from "./sequelize.js";
 import User from "./models/User.js";
 import methodOverride from "method-override";
@@ -16,6 +17,28 @@ const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Ensure uploads directory exists
+const uploadsDir = path.join(__dirname, "uploads");
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+// Session configuration
+const SESSION_SECRET = process.env.SESSION_SECRET || "change_me_in_env";
+app.use(
+  session({
+    secret: SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+  })
+);
+
+// Expose current user to views
+app.use((req, res, next) => {
+  res.locals.currentUser = req.session?.user || null;
+  next();
+});
+
 // Middleware
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -27,7 +50,7 @@ app.set("views", path.join(__dirname, "views"));
 // File Upload Configuration
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, "uploads"));
+    cb(null, uploadsDir);
   },
   filename: (req, file, cb) => {
     cb(null, Date.now() + "-" + file.originalname);
@@ -43,67 +66,191 @@ app.use((req, res, next) => {
   next();
 });
 
-// Routes
+// Simple authentication middleware
+function requireAuth(req, res, next) {
+  if (req.session && req.session.user) {
+    return next();
+  }
+  return res.redirect("/login");
+}
 
-app.get("/", async (req, res) => {
-  const users = await User.findAll();
-  console.log(`[Dashboard] Found ${users.length} users`);
-  res.render("index", { users });
+// Auth routes
+app.get("/login", (req, res) => {
+  if (req.session && req.session.user) {
+    return res.redirect("/");
+  }
+  const { error } = req.query;
+  res.render("login", { error: error || '' });
 });
 
-app.get("/users", async (req, res) => {
-  const { search, filter, page = 1, limit = 10, upload, imported, skipped, errors } = req.query;
-  const offset = (page - 1) * limit;
+app.post("/login", (req, res) => {
+  const { username, password } = req.body;
+  const adminUser = process.env.ADMIN_USERNAME || "admin";
+  const adminPass = process.env.ADMIN_PASSWORD || "password";
+
+  if (username === adminUser && password === adminPass) {
+    req.session.user = { username };
+    console.log(`[Auth] 🟢 User logged in: ${username}`);
+    return res.redirect("/");
+  }
+
+  console.log(`[Auth] 🔴 Failed login attempt for: ${username}`);
+  return res.redirect("/login?error=invalid");
+});
+
+app.post("/logout", (req, res) => {
+  if (!req.session) {
+    return res.redirect("/login");
+  }
+  req.session.destroy((err) => {
+    if (err) {
+      console.error(`[Auth] 🔴 Logout error: ${err.message}`);
+    }
+    res.redirect("/login");
+  });
+});
+
+// Routes
+
+app.get("/", requireAuth, async (req, res) => {
+  try {
+    const totalUsers = await User.count();
+
+    const now = new Date();
+    const sevenDaysAgo = new Date(now);
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    const thirtyDaysAgo = new Date(now);
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const newUsersLast7 = await User.count({
+      where: { createdAt: { [Op.gte]: sevenDaysAgo } },
+    });
+
+    const newUsersLast30 = await User.count({
+      where: { createdAt: { [Op.gte]: thirtyDaysAgo } },
+    });
+
+    const recentUsers = await User.findAll({
+      order: [["createdAt", "DESC"]],
+      limit: 5,
+    });
+
+    console.log(
+      `[Dashboard] Users: total=${totalUsers}, last7=${newUsersLast7}, last30=${newUsersLast30}`
+    );
+
+    res.render("index", {
+      totalUsers,
+      newUsersLast7,
+      newUsersLast30,
+      recentUsers,
+    });
+  } catch (err) {
+    console.error(`[Dashboard] 🔴 Error loading stats: ${err.message}`);
+    res.render("index", {
+      totalUsers: 0,
+      newUsersLast7: 0,
+      newUsersLast30: 0,
+      recentUsers: [],
+    });
+  }
+});
+
+app.get("/users", requireAuth, async (req, res) => {
+  const { search, filter, page = 1, limit = 10, upload, imported, skipped, errors, bulk, deletedCount, sort, direction } = req.query;
+
+  // Sanitize pagination values
+  const pageNum = Math.max(1, parseInt(page, 10) || 1);
+  const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 10));
+  const offset = (pageNum - 1) * limitNum;
+
+  // Sanitize search text (trim & cap length)
+  let safeSearch = (search || '').toString().trim();
+  if (safeSearch.length > 100) {
+    safeSearch = safeSearch.substring(0, 100);
+  }
+
+  // Sanitize filter field
+  const safeFilter = filter === 'name' || filter === 'email' ? filter : '';
 
   let whereClause = {};
-  if (search) {
-    if (filter === "name") {
-      whereClause = { name: { [Op.like]: `%${search}%` } };
-    } else if (filter === "email") {
-      whereClause = { email: { [Op.like]: `%${search}%` } };
+  if (safeSearch) {
+    if (safeFilter === "name") {
+      whereClause = { name: { [Op.like]: `%${safeSearch}%` } };
+    } else if (safeFilter === "email") {
+      whereClause = { email: { [Op.like]: `%${safeSearch}%` } };
     } else {
       // Default: search in both name and email
       whereClause = {
         [Op.or]: [
-          { name: { [Op.like]: `%${search}%` } },
-          { email: { [Op.like]: `%${search}%` } },
+          { name: { [Op.like]: `%${safeSearch}%` } },
+          { email: { [Op.like]: `%${safeSearch}%` } },
         ],
       };
     }
   }
 
+  // Sorting configuration
+  const sortKey = (sort || "createdAt").toString();
+  const sortDir = (direction || "desc").toString().toLowerCase() === "asc" ? "ASC" : "DESC";
+
+  let sortField;
+  if (sortKey === "id") {
+    sortField = "id";
+  } else if (sortKey === "name") {
+    sortField = "name";
+  } else if (sortKey === "email") {
+    sortField = "email";
+  } else {
+    sortField = "createdAt";
+  }
+
   const { count, rows: users } = await User.findAndCountAll({
     where: whereClause,
-    limit: parseInt(limit),
-    offset: parseInt(offset),
-    order: [["createdAt", "DESC"]],
+    limit: limitNum,
+    offset,
+    order: [[sortField, sortDir]],
   });
 
-  const totalPages = Math.ceil(count / limit);
+  const totalPages = Math.ceil(count / limitNum);
 
-  console.log(`[Users Page] Loaded ${users.length} users (page ${page}/${totalPages})`);
+  console.log(`[Users Page] Loaded ${users.length} users (page ${pageNum}/${totalPages})`);
   res.render("users", {
     users,
-    search: search || '',
-    filter: filter || '',
-    currentPage: parseInt(page),
+    search: safeSearch,
+    filter: safeFilter,
+    currentPage: pageNum,
     totalPages,
     totalUsers: count,
-    limit: parseInt(limit),
+    limit: limitNum,
     upload, // Pass upload status to template
     imported: imported ? parseInt(imported) : undefined,
     skipped: skipped ? parseInt(skipped) : undefined,
     errors: errors ? parseInt(errors) : undefined,
+    bulk: bulk || '',
+    deletedCount: deletedCount ? parseInt(deletedCount) : undefined,
+    currentSort: sortField,
+    currentDirection: sortDir.toLowerCase(),
   });
 });
 
 // User details page
-app.get("/users/:id", async (req, res) => {
+app.get("/users/:id", requireAuth, async (req, res) => {
   try {
-    const user = await User.findByPk(req.params.id);
+    const id = parseInt(req.params.id, 10);
+    if (!Number.isInteger(id) || id <= 0) {
+      console.log(`[User Details] ⚠️ Invalid user ID: ${req.params.id}`);
+      return res.status(400).render("error", {
+        title: "Invalid User ID",
+        message: "The requested user ID is not valid.",
+      });
+    }
+
+    const user = await User.findByPk(id);
 
     if (!user) {
-      console.log(`[User Details] ⚠️ User ID ${req.params.id} not found`);
+      console.log(`[User Details] ⚠️ User ID ${id} not found`);
       return res.status(404).render("user-details", { user: null });
     }
 
@@ -115,17 +262,17 @@ app.get("/users/:id", async (req, res) => {
   }
 });
 
-app.get("/add", (req, res) => {
+app.get("/add", requireAuth, (req, res) => {
   console.log("[Add Page] Rendering new user form");
   res.render("add");
 });
 
-app.get("/proxy", (req, res) => {
+app.get("/proxy", requireAuth, (req, res) => {
   console.log("[Proxy Page] Rendering proxy tester");
   res.render("proxy");
 });
 
-app.post("/add", async (req, res) => {
+app.post("/add", requireAuth, async (req, res) => {
   const { name, email } = req.body;
   try {
     await User.create({ name, email });
@@ -133,14 +280,24 @@ app.post("/add", async (req, res) => {
     res.redirect("/users");
   } catch (err) {
     console.error(`[Create] 🔴 Error: ${err.message}`);
-    res.send("Error adding user: " + err.message);
+    res.status(500).render("error", {
+      title: "Error Adding User",
+      message: "There was a problem adding the user. Please try again.",
+      error: err,
+    });
   }
 });
 
-app.put("/update/:id", async (req, res) => {
+app.put("/update/:id", requireAuth, async (req, res) => {
   const { name, email } = req.body;
   try {
-    const [updated] = await User.update({ name, email }, { where: { id: req.params.id } });
+    const id = parseInt(req.params.id, 10);
+    if (!Number.isInteger(id) || id <= 0) {
+      console.log(`[Update] ⚠️ Invalid user ID: ${req.params.id}`);
+      return res.status(400).json({ error: "Invalid user ID" });
+    }
+
+    const [updated] = await User.update({ name, email }, { where: { id } });
     updated
       ? console.log(`[Update] 🟢 User ${req.params.id} updated to ${name} (${email})`)
       : console.log(`[Update] ⚠️ User ID ${req.params.id} not found`);
@@ -151,25 +308,78 @@ app.put("/update/:id", async (req, res) => {
   }
 });
 
-app.post("/delete/:id", async (req, res) => {
+app.post("/delete/:id", requireAuth, async (req, res) => {
   try {
-    const deleted = await User.destroy({ where: { id: req.params.id } });
+    const id = parseInt(req.params.id, 10);
+    if (!Number.isInteger(id) || id <= 0) {
+      console.log(`[Delete] ⚠️ Invalid user ID: ${req.params.id}`);
+      return res.status(400).render("error", {
+        title: "Invalid User ID",
+        message: "The user ID supplied for deletion is not valid.",
+      });
+    }
+
+    const deleted = await User.destroy({ where: { id } });
     deleted
       ? console.log(`[Delete] 🗑️ User ID ${req.params.id} deleted`)
       : console.log(`[Delete] ⚠️ User ID ${req.params.id} not found`);
     res.redirect("/users");
   } catch (err) {
     console.error(`[Delete] 🔴 Error: ${err.message}`);
-    res.send("Error deleting user: " + err.message);
+    res.status(500).render("error", {
+      title: "Error Deleting User",
+      message: "There was a problem deleting the user. Please try again.",
+      error: err,
+    });
   }
 });
 
-app.get("/user/:id", async (req, res) => {
+// Bulk delete users
+app.post("/users/bulk-delete", requireAuth, async (req, res) => {
   try {
-    const user = await User.findByPk(req.params.id);
+    let { ids } = req.body;
+
+    if (!ids) {
+      console.log("[Bulk Delete] ⚠️ No user IDs provided");
+      return res.redirect("/users?bulk=none-selected");
+    }
+
+    if (!Array.isArray(ids)) {
+      ids = [ids];
+    }
+
+    // Sanitize IDs (integers only)
+    const numericIds = ids
+      .map((val) => parseInt(val, 10))
+      .filter((val) => Number.isInteger(val) && val > 0);
+
+    if (numericIds.length === 0) {
+      console.log("[Bulk Delete] ⚠️ No valid user IDs after sanitization");
+      return res.redirect("/users?bulk=none-selected");
+    }
+
+    const deleted = await User.destroy({ where: { id: numericIds } });
+    console.log(`[Bulk Delete] 🗑️ Deleted ${deleted} user(s): [${ids.join(", ")}]`);
+
+    res.redirect(`/users?bulk=deleted&deletedCount=${deleted}`);
+  } catch (err) {
+    console.error(`[Bulk Delete] 🔴 Error: ${err.message}`);
+    res.redirect("/users?bulk=server-error");
+  }
+});
+
+app.get("/user/:id", requireAuth, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (!Number.isInteger(id) || id <= 0) {
+      console.log(`[Fetch] ⚠️ Invalid user ID: ${req.params.id}`);
+      return res.status(400).json({ error: "Invalid user ID" });
+    }
+
+    const user = await User.findByPk(id);
     user
       ? console.log(`[Fetch] 🟢 User Found: ${user.name}`)
-      : console.log(`[Fetch] ⚠️ User ID ${req.params.id} not found`);
+      : console.log(`[Fetch] ⚠️ User ID ${id} not found`);
     res.json(user || { error: "Not found" });
   } catch (err) {
     console.error(`[Fetch] 🔴 Error: ${err.message}`);
@@ -178,7 +388,7 @@ app.get("/user/:id", async (req, res) => {
 });
 
 // CSV Export
-app.get("/export", async (req, res) => {
+app.get("/export", requireAuth, async (req, res) => {
   try {
     const users = await User.findAll({
       attributes: ["id", "name", "email", "createdAt", "updatedAt"],
@@ -200,7 +410,7 @@ app.get("/export", async (req, res) => {
 });
 
 // File Upload
-app.post("/upload", upload.single("file"), async (req, res) => {
+app.post("/upload", requireAuth, upload.single("file"), async (req, res) => {
   if (!req.file) {
     console.log(`[Upload] ❌ No file uploaded`);
     return res.redirect("/users?upload=no-file");
@@ -362,12 +572,32 @@ app.post("/upload", upload.single("file"), async (req, res) => {
 });
 
 // Proxy Test
-app.get("/proxy/:url", async (req, res) => {
+app.get("/proxy/:url", requireAuth, async (req, res) => {
   try {
-    const url = decodeURIComponent(req.params.url);
-    console.log(`[Proxy Test] Requesting: ${url}`);
+    const raw = decodeURIComponent(req.params.url || "");
 
-    const response = await fetch(url);
+    let parsed;
+    try {
+      parsed = new URL(raw);
+    } catch {
+      console.log(`[Proxy Test] ⚠️ Invalid URL: ${raw}`);
+      return res.status(400).json({ error: "Invalid URL" });
+    }
+
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      console.log(`[Proxy Test] ⚠️ Blocked non-HTTP(S) URL: ${parsed.href}`);
+      return res.status(400).json({ error: "Only http and https URLs are allowed" });
+    }
+
+    // Basic length guard to avoid abuse
+    if (parsed.href.length > 2000) {
+      console.log(`[Proxy Test] ⚠️ URL too long`);
+      return res.status(400).json({ error: "URL is too long" });
+    }
+
+    console.log(`[Proxy Test] Requesting: ${parsed.href}`);
+
+    const response = await fetch(parsed.href);
     const contentType = response.headers.get('content-type');
 
     if (contentType && contentType.includes('application/json')) {
@@ -415,6 +645,26 @@ function parseCSVLine(line) {
 
   return result;
 }
+
+// 404 handler (keep after all routes)
+app.use((req, res) => {
+  res.status(404).render("not-found", { url: req.originalUrl });
+});
+
+// Global error handler (last middleware)
+app.use((err, req, res, next) => {
+  console.error(`[Global Error] 🔴 ${err.message}`);
+
+  if (req.xhr || (req.headers.accept && req.headers.accept.includes('application/json'))) {
+    return res.status(500).json({ error: "Internal server error" });
+  }
+
+  res.status(500).render("error", {
+    title: "Server Error",
+    message: "Something went wrong. Please try again later.",
+    error: err,
+  });
+});
 
 // Start server
 const PORT = process.env.PORT || 5000;

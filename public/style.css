@@ -234,6 +234,19 @@ h2 {
   border-bottom: 1px solid #cbd5e1;
 }
 
+/* Ensure sortable header links/icons stay white on gradient background */
+.table-custom thead th a {
+  color: #ffffff;
+}
+
+.table-custom thead th a:hover {
+  color: #e5e7eb;
+}
+
+.table-custom thead th i {
+  color: #ffffff;
+}
+
 .table-custom tbody tr {
   transition: var(--transition);
   border-bottom: 1px solid #f1f5f9;

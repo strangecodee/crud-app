@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Page Not Found - User Management</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" />
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body class="bg-light d-flex align-items-center" style="min-height: 100vh;">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-7 text-center">
+        <div class="card shadow-sm p-4">
+          <h1 class="display-4 mb-3">
+            <i class="bi bi-question-circle-fill text-primary me-2"></i>
+            404
+          </h1>
+          <h2 class="h4 mb-3">Page Not Found</h2>
+          <p class="text-muted mb-4">
+            We couldn't find anything at <code><%= url %></code>.
+          </p>
+          <a href="/" class="btn btn-primary me-2">
+            <i class="bi bi-house-door-fill me-1"></i>
+            Back to Dashboard
+          </a>
+          <a href="/users" class="btn btn-outline-secondary">
+            <i class="bi bi-people-fill me-1"></i>
+            View Users
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
