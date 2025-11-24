@@ -97,6 +97,24 @@ app.get("/users", async (req, res) => {
   });
 });
 
+// User details page
+app.get("/users/:id", async (req, res) => {
+  try {
+    const user = await User.findByPk(req.params.id);
+
+    if (!user) {
+      console.log(`[User Details] ⚠️ User ID ${req.params.id} not found`);
+      return res.status(404).render("user-details", { user: null });
+    }
+
+    console.log(`[User Details] 🟢 Rendering details for user ${user.id} (${user.name})`);
+    res.render("user-details", { user });
+  } catch (err) {
+    console.error(`[User Details] 🔴 Error: ${err.message}`);
+    res.status(500).send("Error loading user details");
+  }
+});
+
 app.get("/add", (req, res) => {
   console.log("[Add Page] Rendering new user form");
   res.render("add");

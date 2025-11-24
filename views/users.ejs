@@ -105,9 +105,9 @@
                 <td><%= user.email %></td>
                 <td class="text-center">
                   <div class="btn-group" role="group">
-                    <button class="btn btn-info btn-sm" onclick="viewUser('<%= user.id %>', '<%= user.name %>', '<%= user.email %>')" title="View Details">
+                    <a href="/users/<%= user.id %>" class="btn btn-info btn-sm" title="View Details">
                       <i class="bi bi-eye-fill"></i>
-                    </button>
+                    </a>
                     <button class="btn btn-warning btn-sm" onclick="openEditModal('<%= user.id %>', '<%= user.name %>', '<%= user.email %>')" title="Edit User">
                       <i class="bi bi-pencil-fill"></i>
                     </button>
