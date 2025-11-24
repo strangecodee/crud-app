@@ -33,18 +33,11 @@ app.use(
   })
 );
 
-// Session middleware
-app.use(
-  session({
-    secret: SESSION_SECRET,
-    resave: false,
-    saveUninitialized: false,
-  })
-);
-
 // Expose current user to views with fallback to empty object
 app.use((req, res, next) => {
+  console.log("[Session Debug] req.session:", req.session);
   res.locals.currentUser = req.session && req.session.user ? req.session.user : {};
+  console.log("[Session Debug] res.locals.currentUser:", res.locals.currentUser);
   next();
 });
 
@@ -99,12 +92,18 @@ app.post("/login", (req, res) => {
 
   if (username === adminUser && password === adminPass) {
     req.session.user = { username };
-    console.log(`[Auth] 🟢 User logged in: ${username}`);
-    return res.redirect("/");
+    req.session.save((err) => {
+      if (err) {
+        console.error("[Auth] 🔴 Session save error:", err);
+        return res.redirect("/login?error=server");
+      }
+      console.log(`[Auth] 🟢 User logged in: ${username}`);
+      return res.redirect("/");
+    });
+  } else {
+    console.log(`[Auth] 🔴 Failed login attempt for: ${username}`);
+    return res.redirect("/login?error=invalid");
   }
-
-  console.log(`[Auth] 🔴 Failed login attempt for: ${username}`);
-  return res.redirect("/login?error=invalid");
 });
 
 app.post("/logout", (req, res) => {
