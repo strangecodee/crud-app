@@ -33,9 +33,18 @@ app.use(
   })
 );
 
-// Expose current user to views
+// Session middleware
+app.use(
+  session({
+    secret: SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+  })
+);
+
+// Expose current user to views with fallback to empty object
 app.use((req, res, next) => {
-  res.locals.currentUser = req.session?.user || null;
+  res.locals.currentUser = req.session && req.session.user ? req.session.user : {};
   next();
 });
 
