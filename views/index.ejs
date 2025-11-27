@@ -1,129 +1,253 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Dashboard - User Management</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" />
-  <link rel="stylesheet" href="/style.css" />
-</head>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Dashboard - User Management</title>
+    <link href="./output.css" rel="stylesheet" />
+  </head>
 
-<body class="bg-light">
+  <body class="bg-gray-100 text-gray-900">
+    <div class="max-w-6xl mx-auto px-4 py-8 animate-fade-in">
+      <!-- Header -->
+      <div class="flex justify-between items-center mb-6">
+        <h1 class="flex items-center gap-2 text-3xl font-bold">
+          <!-- Heroicon: Chart Bar -->
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="#2563eb"
+            class="size-7"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0 0 20.25 18V6A2.25 2.25 0 0 0 18 3.75H6A2.25 2.25 0 0 0 3.75 6v12A2.25 2.25 0 0 0 6 20.25Z"
+            />
+          </svg>
+          User Management Dashboard
+        </h1>
 
-  <div class="container-custom fade-in-up">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h1 class="mb-0">
-        <i class="bi bi-bar-chart-line-fill text-primary me-2"></i>
-        User Management Dashboard
-      </h1>
-      <% if (typeof currentUser !== 'undefined' && currentUser && currentUser.username) { %>
-        <form action="/logout" method="POST" class="d-flex align-items-center gap-2">
-          <span class="text-muted small">Logged in as <strong><%= currentUser.username %></strong></span>
-          <button type="submit" class="btn btn-outline-secondary btn-sm">
-            <i class="bi bi-box-arrow-right me-1"></i>
+        <% if (typeof currentUser !== 'undefined' && currentUser &&
+        currentUser.username) { %>
+        <form action="/logout" method="POST" class="flex items-center gap-3">
+          <span class="text-sm text-gray-500">
+            Logged in as
+            <strong class="text-gray-700"><%= currentUser.username %></strong>
+          </span>
+
+          <button
+            type="submit"
+            class="border border-gray-400 text-gray-700 px-3 py-1 rounded-md text-sm hover:bg-gray-200 flex items-center gap-1 transition cursor-pointer"
+          >
+            <!-- Heroicon: Arrow Right Start On Rectangle (logout) -->
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="1.5"
+              stroke="currentColor"
+              class="size-5"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M8.25 9V5.25A2.25 2.25 0 0 1 10.5 3h6a2.25 2.25 0 0 1 2.25 2.25v13.5A2.25 2.25 0 0 1 16.5 21h-6a2.25 2.25 0 0 1-2.25-2.25V15m-3 0-3-3m0 0 3-3m-3 3H15"
+              />
+            </svg>
             Logout
           </button>
         </form>
-      <% } %>
-    </div>
+        <% } %>
+      </div>
 
-    <div class="dashboard-links">
-      <a href="/add" class="dashboard-btn">
-        <i class="bi bi-plus-circle-fill"></i>
-        <span>Add User</span>
-      </a>
-      <a href="/users" class="dashboard-btn">
-        <i class="bi bi-people-fill"></i>
-        <span>View All Users</span>
-      </a>
-      <a href="/proxy" class="dashboard-btn">
-        <i class="bi bi-globe"></i>
-        <span>Test Proxy</span>
-      </a>
-    </div>
+      <!-- Dashboard Links -->
+      <div class="flex gap-4 mb-8">
+        <a
+          href="/add"
+          class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg shadow transition"
+        >
+          <!-- Heroicon: Plus Circle -->
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          <span>Add User</span>
+        </a>
 
-    <div class="stats">
-      <h2 class="mb-3">
-        <i class="bi bi-graph-up text-success me-2"></i>
-        Quick Stats
-      </h2>
+        <a
+          href="/users"
+          class="flex items-center gap-2 bg-gray-700 hover:bg-gray-800 text-white px-4 py-3 rounded-lg shadow transition"
+        >
+          <!-- Heroicon: Users -->
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="size-6"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z"
+            />
+          </svg>
+          <span>View All Users</span>
+        </a>
 
-      <div class="row g-3">
-        <div class="col-md-4">
-          <div class="card shadow-sm text-center h-100">
-            <div class="card-body">
-              <h5 class="card-title">Total Users</h5>
-              <p class="display-6 mb-0"><%= typeof totalUsers !== 'undefined' ? totalUsers : 0 %></p>
-            </div>
+        <a
+          href="/proxy"
+          class="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-lg shadow transition"
+        >
+          <!-- Heroicon: Globe Alt -->
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="size-6"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="m20.893 13.393-1.135-1.135a2.252 2.252 0 0 1-.421-.585l-1.08-2.16a.414.414 0 0 0-.663-.107.827.827 0 0 1-.812.21l-1.273-.363a.89.89 0 0 0-.738 1.595l.587.39c.59.395.674 1.23.172 1.732l-.2.2c-.212.212-.33.498-.33.796v.41c0 .409-.11.809-.32 1.158l-1.315 2.191a2.11 2.11 0 0 1-1.81 1.025 1.055 1.055 0 0 1-1.055-1.055v-1.172c0-.92-.56-1.747-1.414-2.089l-.655-.261a2.25 2.25 0 0 1-1.383-2.46l.007-.042a2.25 2.25 0 0 1 .29-.787l.09-.15a2.25 2.25 0 0 1 2.37-1.048l1.178.236a1.125 1.125 0 0 0 1.302-.795l.208-.73a1.125 1.125 0 0 0-.578-1.315l-.665-.332-.091.091a2.25 2.25 0 0 1-1.591.659h-.18c-.249 0-.487.1-.662.274a.931.931 0 0 1-1.458-1.137l1.411-2.353a2.25 2.25 0 0 0 .286-.76m11.928 9.869A9 9 0 0 0 8.965 3.525m11.928 9.868A9 9 0 1 1 8.965 3.525"
+            />
+          </svg>
+
+          <span>Test Proxy</span>
+        </a>
+      </div>
+
+      <!-- Stats Section -->
+      <div class="mb-8">
+        <h2 class="flex items-center gap-2 text-2xl font-semibold mb-4">
+          <!-- Heroicon: Arrow Trending Up -->
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="size-6"
+            viewBox="0 0 24 24"
+          >
+            <path
+              fill="#16a34a"
+              d="M14.003 5.5H21a1 1 0 0 1 .993.883L22 6.5v7a1 1 0 0 1-1.994.117L20 13.5l-.001-4.586l-7.292 7.293a1 1 0 0 1-1.32.084l-.094-.083l-2.296-2.292l-5.288 5.29a1 1 0 0 1-1.497-1.32l.083-.095l5.994-5.996a1 1 0 0 1 1.32-.084l.094.083l2.296 2.292L18.584 7.5h-4.581a1 1 0 0 1-.993-.883l-.007-.117a1 1 0 0 1 .883-.993l.117-.007H21h-6.997Z"
+            />
+          </svg>
+          Quick Stats
+        </h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <!-- Card -->
+          <div class="bg-white shadow rounded-lg p-5 text-center">
+            <h5 class="text-lg font-medium">Total Users</h5>
+            <p class="text-4xl font-bold"><%= totalUsers || 0 %></p>
+          </div>
+
+          <div class="bg-white shadow rounded-lg p-5 text-center">
+            <h5 class="text-lg font-medium">New in Last 7 Days</h5>
+            <p class="text-4xl font-bold"><%= newUsersLast7 || 0 %></p>
+          </div>
+
+          <div class="bg-white shadow rounded-lg p-5 text-center">
+            <h5 class="text-lg font-medium">New in Last 30 Days</h5>
+            <p class="text-4xl font-bold"><%= newUsersLast30 || 0 %></p>
           </div>
         </div>
-        <div class="col-md-4">
-          <div class="card shadow-sm text-center h-100">
-            <div class="card-body">
-              <h5 class="card-title">New in Last 7 Days</h5>
-              <p class="display-6 mb-0"><%= typeof newUsersLast7 !== 'undefined' ? newUsersLast7 : 0 %></p>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="card shadow-sm text-center h-100">
-            <div class="card-body">
-              <h5 class="card-title">New in Last 30 Days</h5>
-              <p class="display-6 mb-0"><%= typeof newUsersLast30 !== 'undefined' ? newUsersLast30 : 0 %></p>
-            </div>
-          </div>
+
+        <div class="mt-3">
+          <small class="text-gray-500"
+            >Dashboard updated at: <%= new Date().toLocaleString() %></small
+          >
         </div>
       </div>
 
-      <div class="mt-4">
-        <small class="text-muted">Dashboard updated at: <%= new Date().toLocaleString() %></small>
-      </div>
-    </div>
+      <!-- Recent Users -->
+      <div class="mt-10">
+        <h2 class="flex items-center gap-2 text-2xl font-semibold mb-3">
+          <!-- Heroicon: Clock -->
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="size-6 text-blue-600"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+            />
+          </svg>
 
-    <div class="mt-5">
-      <h2 class="mb-3">
-        <i class="bi bi-clock-history text-primary me-2"></i>
-        Recent Users
-      </h2>
-      <div class="card shadow-sm">
-        <div class="card-body p-0">
+          Recent Users
+        </h2>
+
+        <div class="bg-white shadow rounded-lg overflow-hidden">
           <% if (recentUsers && recentUsers.length) { %>
-            <table class="table mb-0 table-custom">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Name</th>
-                  <th>Email</th>
-                  <th>Created At</th>
-                </tr>
-              </thead>
-              <tbody>
-                <% recentUsers.forEach(function(user) { %>
-                  <tr>
-                    <td>#<%= user.id %></td>
-                    <td><%= user.name %></td>
-                    <td><%= user.email %></td>
-                    <td><%= user.createdAt ? user.createdAt.toLocaleString() : '-' %></td>
-                  </tr>
-                <% }); %>
-              </tbody>
-            </table>
+          <table class="w-full text-left border-collapse">
+            <thead class="bg-gray-200 text-gray-700">
+              <tr>
+                <th class="p-3 font-semibold">ID</th>
+                <th class="p-3 font-semibold">Name</th>
+                <th class="p-3 font-semibold">Email</th>
+                <th class="p-3 font-semibold">Created At</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% recentUsers.forEach(user => { %>
+              <tr class="border-b hover:bg-gray-50">
+                <td class="p-3">#<%= user.id %></td>
+                <td class="p-3"><%= user.name %></td>
+                <td class="p-3"><%= user.email %></td>
+                <td class="p-3">
+                  <%= user.createdAt ? user.createdAt.toLocaleString() : '-' %>
+                </td>
+              </tr>
+              <% }) %>
+            </tbody>
+          </table>
           <% } else { %>
-            <div class="p-4 text-center text-muted">
-              <i class="bi bi-inbox me-2"></i>
-              No users found yet. Start by adding a new user.
-            </div>
+          <div class="p-6 text-center text-gray-500">
+            <!-- Heroicon: Inbox -->
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-6 w-6 inline-block mr-2"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="2"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M20 13V7a2 2 0 00-2-2h-3l-2-2H9L7 5H4a2 2 0 00-2 2v6m18 0v6a2 2 0 01-2 2H4a2 2 0 01-2-2v-6m18 0H2"
+              />
+            </svg>
+            No users found yet. Start by adding a new user.
+          </div>
           <% } %>
         </div>
       </div>
     </div>
-  </div>
 
-  <footer class="mt-5 py-3 border-top text-center text-muted small">
-    <div class="container">
-      <span>© <%= new Date().getFullYear() %> User Management Dashboard · Built with Express, Sequelize &amp; EJS</span>
-    </div>
-  </footer>
-
-</body>
+    <!-- Footer -->
+    <footer class="mt-10 py-4 border-t text-center text-gray-500 text-sm">
+      © <%= new Date().getFullYear() %> User Management Dashboard · Built with
+      Express, Sequelize &amp; EJS
+    </footer>
+  </body>
 </html>

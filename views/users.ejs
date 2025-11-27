@@ -3,420 +3,669 @@
 <head>
   <meta charset="UTF-8" />
   <title>Users - User Management</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" />
-  <link rel="stylesheet" href="/style.css" />
+  <link href="./output.css" rel="stylesheet">
 </head>
 
-<body class="bg-light">
+<body class="bg-gray-100">
 
-  <!-- Toast container -->
-  <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1100;">
-    <div id="toastContainer" class="toast-container"></div>
-  </div>
+  <!-- Toast container (placeholder, fully implemented in Part 3) -->
+  <div id="toastContainer" class="fixed bottom-4 right-4 space-y-3 z-1100"></div>
 
-  <div class="container-custom fade-in-up">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h1 class="mb-0">
-        <i class="bi bi-people-fill text-primary me-2"></i>
+  <!-- Main Container -->
+  <div class="max-w-6xl mx-auto px-4 py-8 animate-fade-in-up">
+
+
+    <a href="/" class="text-blue-600 hover:underline mt-2 inline-block">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+        </svg>
+    </a>
+
+    <!-- Header Row -->
+    <div class="flex items-center justify-between mb-6">
+      <h1 class="flex items-center justify-center gap-4 text-3xl font-bold text-gray-900 px-2">
+        <!-- Heroicon: Users -->
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#2563eb" class="size-6">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" />
+        </svg>
+
         All Users
       </h1>
+
       <% if (typeof currentUser !== 'undefined' && currentUser && currentUser.username) { %>
-        <form action="/logout" method="POST" class="d-flex align-items-center gap-2">
-          <span class="text-muted small">Logged in as <strong><%= currentUser.username %></strong></span>
-          <button type="submit" class="btn btn-outline-secondary btn-sm">
-            <i class="bi bi-box-arrow-right me-1"></i>
-            Logout
-          </button>
-        </form>
+      <form action="/logout" method="POST" class="flex items-center gap-3">
+        <span class="text-gray-500 text-sm">
+          Logged in as <strong><%= currentUser.username %></strong>
+        </span>
+
+        <button type="submit"
+          class="flex items-center gap-1 border border-gray-400 text-gray-700 hover:bg-gray-100 px-3 py-1.5 text-sm rounded-md transition">
+          <!-- Heroicon: Arrow Left On Rectangle -->
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 9V5.25A2.25 2.25 0 0 1 10.5 3h6a2.25 2.25 0 0 1 2.25 2.25v13.5A2.25 2.25 0 0 1 16.5 21h-6a2.25 2.25 0 0 1-2.25-2.25V15m-3 0-3-3m0 0 3-3m-3 3H15" />
+          </svg>
+          Logout
+        </button>
+      </form>
       <% } %>
     </div>
 
-    <div class="mb-4 d-flex justify-content-between align-items-center">
-      <a href="/add" class="btn btn-success">
-        <i class="bi bi-plus-circle-fill me-2"></i>
+    <!-- Action Buttons -->
+    <div class="flex items-center justify-between mb-8">
+      <a href="/add"
+        class="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition">
+        <!-- Heroicon: Plus Circle -->
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#fff" class="size-5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+        </svg>
+
         Add New User
       </a>
-      <div>
-        <a href="/export" class="btn btn-primary me-2">
-          <i class="bi bi-download me-2"></i>
-          Export CSV
+
+      <div class="flex items-center gap-3">
+        <a href="/export"
+          class="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition">
+          <!-- Heroicon: Arrow Down Tray -->
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#fff" class="size-4">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+          </svg>
+          Download CSV
         </a>
-        <form action="/upload" method="POST" enctype="multipart/form-data" class="d-inline" id="uploadForm">
-          <input type="file" name="file" id="fileInput" class="d-none" accept=".csv,.txt,.json" />
-          <button type="button" class="btn btn-info me-2" id="chooseFileBtn">
-            <i class="bi bi-folder2-open me-2"></i>
+
+        <form action="/upload" method="POST" enctype="multipart/form-data" id="uploadForm" class="flex items-center gap-3">
+          <input type="file" name="file" id="fileInput"
+            class="hidden" accept=".csv,.txt,.json" />
+
+          <button type="button" id="chooseFileBtn"
+            class="flex items-center gap-2 bg-cyan-600 text-white px-4 py-2 rounded-md hover:bg-cyan-700 transition cursor-pointer">
+            <!-- Heroicon: Folder Open -->
+            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" class="size-5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 10.5v6m3-3H9m4.06-7.19-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" />
+            </svg>
+
             Choose File
           </button>
-          <button type="submit" class="btn btn-primary" id="uploadBtn" disabled>
-            <i class="bi bi-upload me-2"></i>
+
+          <button type="submit" id="uploadBtn" disabled
+            class="flex items-center gap-2 bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-2 rounded-md hover:bg-blue-700 transition cursor-pointer">
+            <!-- Heroicon: Arrow Up Tray -->
+              <svg xmlns="http://www.w3.org/2000/svg" class="size-4" viewBox="0 0 24 24"><path fill="#fff" d="M8.71 7.71L11 5.41V15a1 1 0 0 0 2 0V5.41l2.29 2.3a1 1 0 0 0 1.42 0a1 1 0 0 0 0-1.42l-4-4a1 1 0 0 0-.33-.21a1 1 0 0 0-.76 0a1 1 0 0 0-.33.21l-4 4a1 1 0 1 0 1.42 1.42ZM21 14a1 1 0 0 0-1 1v4a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-4a1 1 0 0 0-2 0v4a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3v-4a1 1 0 0 0-1-1Z"/></svg>
             Upload
           </button>
-          <span id="selectedFileName" class="ms-2 text-muted small"></span>
+          <span id="selectedFileName" class="text-sm text-gray-500"></span>
         </form>
       </div>
     </div>
 
-    <!-- Search and Filter -->
-    <div class="mb-4">
-      <form method="GET" action="/users" class="row g-3">
-        <div class="col-md-6">
-          <input type="text" name="search" class="form-control" placeholder="Search by name or email..." value="<%= (typeof search !== 'undefined' ? search : '') %>" />
-        </div>
-        <div class="col-md-3">
-          <select name="filter" class="form-select">
-            <option value="">All Fields</option>
-            <option value="name" <%= (typeof filter !== 'undefined' && filter === 'name') ? 'selected' : '' %>>Name Only</option>
-            <option value="email" <%= (typeof filter !== 'undefined' && filter === 'email') ? 'selected' : '' %>>Email Only</option>
-          </select>
-        </div>
-        <div class="col-md-3">
-          <button type="submit" class="btn btn-outline-primary w-100">
-            <i class="bi bi-search me-2"></i>
-            Search
-          </button>
-        </div>
+    <!-- Search & Filter -->
+    <div class="mb-8">
+      <form method="GET" action="/users" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+        <input type="text" name="search"
+          value="<%= (typeof search !== 'undefined' ? search : '') %>"
+          placeholder="Search by name or email..."
+          class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+
+        <select name="filter"
+          class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="">All Fields</option>
+          <option value="name" <%= (typeof filter !== 'undefined' && filter === 'name') ? 'selected' : '' %>>Name Only</option>
+          <option value="email" <%= (typeof filter !== 'undefined' && filter === 'email') ? 'selected' : '' %>>Email Only</option>
+        </select>
+
+        <button type="submit"
+          class="flex items-center justify-center gap-2 border border-blue-600 text-blue-600 hover:bg-blue-50 px-4 py-2 rounded-md transition w-full">
+          <!-- Heroicon: Magnifying Glass -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="size-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M21 21l-4.35-4.35M16.65 10.5a6.15 6.15 0 1 1-12.3 0 6.15 6.15 0 0 1 12.3 0z" />
+          </svg>
+          Search
+        </button>
+
       </form>
     </div>
-
-    <div class="card">
+    <!-- Bulk Actions + Table -->
+    <div class="bg-white shadow rounded-lg overflow-hidden">
       <form id="bulkDeleteForm" method="POST" action="/users/bulk-delete">
-        <div class="card-body p-0">
-          <div class="d-flex justify-content-between align-items-center px-3 pt-3 pb-2">
-            <span class="text-muted small">Bulk actions</span>
-            <button type="button" class="btn btn-sm btn-outline-danger" id="bulkDeleteBtn">
-              <i class="bi bi-trash-fill me-1"></i>
-              Delete Selected
-            </button>
-          </div>
-          <table class="table table-hover mb-0 table-custom">
-            <thead>
+
+        <!-- Bulk Action Header -->
+        <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200">
+          <span class="text-gray-500 text-sm">Bulk actions</span>
+
+          <button type="button" id="bulkDeleteBtn" disabled
+            class="flex items-center gap-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer text-white text-sm px-3 py-1.5 rounded-md transition">
+            <!-- Heroicon: Trash -->
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+          </svg>
+            Delete Selected
+          </button>
+        </div>
+
+        <!-- Table -->
+        <div class="overflow-x-auto">
+          <table class="min-w-full text-left text-sm text-gray-800">
+
+            <thead class="bg-gray-100 border-b border-gray-200">
               <tr>
-                <th class="text-center" style="width: 40px;">
-                  <input type="checkbox" id="selectAll" class="form-check-input" />
+
+                <!-- Select All -->
+                <th class="px-4 py-3 text-center w-12">
+                  <input type="checkbox" id="selectAll"
+                    class="size-4 rounded border-gray-400 focus:ring-blue-500">
                 </th>
-                <th class="text-center">
-                  <a class="text-decoration-none" href="?page=<%= currentPage %>&limit=<%= limit %>&search=<%= (typeof search !== 'undefined' ? search : '') %>&filter=<%= (typeof filter !== 'undefined' ? filter : '') %>&sort=id&direction=<%= (currentSort === 'id' && currentDirection === 'asc') ? 'desc' : 'asc' %>">
-                    <i class="bi bi-hash text-primary me-1"></i>
+
+                <!-- ID Column -->
+                <th class="px-4 py-3 text-center">
+                  <a href="?page=<%= currentPage %>&limit=<%= limit %>&search=<%= search || '' %>&filter=<%= filter || '' %>&sort=id&direction=<%= (currentSort === 'id' && currentDirection === 'asc') ? 'desc' : 'asc' %>"
+                    class="flex items-center justify-center gap-1 hover:text-blue-600">
+                    <!-- Heroicon: Hashtag -->
+                    <svg xmlns="http://www.w3.org/2000/svg" class="size-4 text-blue-600" fill="none"
+                      viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M5 9h14M5 15h14M9 3L7 21M17 3l-2 18" />
+                    </svg>
                     ID
+
                     <% if (currentSort === 'id') { %>
-                      <i class="bi <%= currentDirection === 'asc' ? 'bi-caret-up-fill' : 'bi-caret-down-fill' %> ms-1"></i>
+                      <% if (currentDirection === 'asc') { %>
+                        <!-- Heroicon: Chevron Up -->
+                        <svg xmlns="http://www.w3.org/2000/svg" class="size-4 text-gray-700"
+                          fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M4.5 15.75l7.5-7.5 7.5 7.5" />
+                        </svg>
+                      <% } else { %>
+                        <!-- Heroicon: Chevron Down -->
+                        <svg xmlns="http://www.w3.org/2000/svg" class="size-4 text-gray-700"
+                          fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                        </svg>
+                      <% } %>
                     <% } %>
                   </a>
                 </th>
-                <th>
-                  <a class="text-decoration-none" href="?page=<%= currentPage %>&limit=<%= limit %>&search=<%= (typeof search !== 'undefined' ? search : '') %>&filter=<%= (typeof filter !== 'undefined' ? filter : '') %>&sort=name&direction=<%= (currentSort === 'name' && currentDirection === 'asc') ? 'desc' : 'asc' %>">
-                    <i class="bi bi-person-fill text-primary me-1"></i>
+
+                <!-- Name Column -->
+                <th class="px-4 py-3">
+                  <a href="?page=<%= currentPage %>&limit=<%= limit %>&search=<%= search || '' %>&filter=<%= filter || '' %>&sort=name&direction=<%= (currentSort === 'name' && currentDirection === 'asc') ? 'desc' : 'asc' %>"
+                    class="flex items-center gap-1 hover:text-blue-600">
+                    <!-- Heroicon: User -->
+                    <svg xmlns="http://www.w3.org/2000/svg" class="size-4 text-blue-600"
+                      fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0zM4.5 19.5a8.25 8.25 0 1 1 15 0H4.5z" />
+                    </svg>
                     Name
+
                     <% if (currentSort === 'name') { %>
-                      <i class="bi <%= currentDirection === 'asc' ? 'bi-caret-up-fill' : 'bi-caret-down-fill' %> ms-1"></i>
+                      <% if (currentDirection === 'asc') { %>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="size-4 text-gray-700" fill="none"
+                          viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M4.5 15.75l7.5-7.5 7.5 7.5" />
+                        </svg>
+                      <% } else { %>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="size-4 text-gray-700" fill="none"
+                          viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                        </svg>
+                      <% } %>
                     <% } %>
+
                   </a>
                 </th>
-                <th>
-                  <a class="text-decoration-none" href="?page=<%= currentPage %>&limit=<%= limit %>&search=<%= (typeof search !== 'undefined' ? search : '') %>&filter=<%= (typeof filter !== 'undefined' ? filter : '') %>&sort=email&direction=<%= (currentSort === 'email' && currentDirection === 'asc') ? 'desc' : 'asc' %>">
-                    <i class="bi bi-envelope-fill text-primary me-1"></i>
+
+                <!-- Email Column -->
+                <th class="px-4 py-3">
+                  <a href="?page=<%= currentPage %>&limit=<%= limit %>&search=<%= search || '' %>&filter=<%= filter || '' %>&sort=email&direction=<%= (currentSort === 'email' && currentDirection === 'asc') ? 'desc' : 'asc' %>"
+                    class="flex items-center gap-1 hover:text-blue-600">
+                    <!-- Heroicon: Envelope -->
+                    <svg xmlns="http://www.w3.org/2000/svg" class="size-4" viewBox="0 0 16 16" fill="#2563eb"><path fill="#2563eb" fill-rule="evenodd" d="M14.95 3.684L8.637 8.912a1 1 0 0 1-1.276 0l-6.31-5.228A.999.999 0 0 0 1 4v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4a.999.999 0 0 0-.05-.316M2 2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2m-.21 1l5.576 4.603a1 1 0 0 0 1.27.003L14.268 3z"/></svg>
                     Email
+
                     <% if (currentSort === 'email') { %>
-                      <i class="bi <%= currentDirection === 'asc' ? 'bi-caret-up-fill' : 'bi-caret-down-fill' %> ms-1"></i>
+                      <% if (currentDirection === 'asc') { %>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="size-4 text-gray-700"
+                          fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M4.5 15.75l7.5-7.5 7.5 7.5" />
+                        </svg>
+                      <% } else { %>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="size-4 text-gray-700"
+                          fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                        </svg>
+                      <% } %>
                     <% } %>
                   </a>
                 </th>
-                <th class="text-center">
-                  <i class="bi bi-gear-fill text-primary me-1"></i>
+
+                <!-- Actions Column yeh wala -->
+                <th class="px-4 py-3">
+                  <a href="?page=<%= currentPage %>&limit=<%= limit %>&search=<%= search || '' %>&filter=<%= filter || '' %>&sort=email&direction=<%= (currentSort === 'email' && currentDirection === 'asc') ? 'desc' : 'asc' %>"
+                    class="flex items-center justify-center gap-1 hover:text-blue-600">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="size-4" viewBox="0 0 24 24" fill="#2563eb"><g fill="none" stroke="#2563eb" stroke-width="1.5"><path d="M9 12a3 3 0 1 0 6 0a3 3 0 1 0-6 0"/><path d="M14.5 2h-5v2.398a8 8 0 0 0-2.831 1.637l-2.08-1.2l-2.5 4.33l2.078 1.2a8 8 0 0 0 0 3.27l-2.077 1.2l2.5 4.33l2.079-1.2a8 8 0 0 0 2.83 1.637V22h5v-2.398a8 8 0 0 0 2.832-1.637l2.08 1.2l2.5-4.33l-2.078-1.2a8 8 0 0 0 0-3.27l2.077-1.2l-2.5-4.33l-2.079 1.2A8 8 0 0 0 14.5 4.398z"/></g></svg>
                   Actions
+                  </a>
                 </th>
+
               </tr>
             </thead>
+
             <tbody>
+
               <% if (users.length === 0) { %>
+              <!-- No Users Row -->
               <tr>
-                <td colspan="4" class="text-center py-5">
-                  <div class="text-muted">
-                    <h5>
-                      <i class="bi bi-inbox-fill me-2"></i>
+                <td colspan="5" class="py-10 text-center text-gray-500">
+                  <div class="max-w-sm mx-auto">
+                    <h5 class="text-lg font-semibold flex items-center justify-center gap-2 text-gray-700 mb-2">
+                      <!-- Heroicon: Inbox -->
+                      <svg xmlns="http://www.w3.org/2000/svg" class="size-6" fill="none"
+                        viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M4.5 10.5l1.5-6h12l1.5 6M3 18h18M3 18l3-3h12l3 3M3 18v-7.5h18V18" />
+                      </svg>
                       No users found
                     </h5>
-                    <p>Start by adding your first user!</p>
-                    <a href="/add" class="btn btn-primary">
-                      <i class="bi bi-plus-circle-fill me-2"></i>
+                    <p class="text-sm mb-4">Start by adding your first user!</p>
+
+                    <a href="/add"
+                      class="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition">
+                      <!-- Heroicon: Plus Circle -->
+                      <svg xmlns="http://www.w3.org/2000/svg" class="size-5" fill="currentColor"
+                        viewBox="0 0 24 24">
+                        <path
+                          d="M12 2a10 10 0 1 0 .001 20.001A10 10 0 0 0 12 2zm1 11h3a1 1 0 1 1 0 2h-3v3a1 1 0 1 1-2 0v-3H8a1 1 0 1 1 0-2h3V8a1 1 0 1 1 2 0v3z" />
+                      </svg>
                       Add First User
                     </a>
                   </div>
                 </td>
               </tr>
-            <% } else { users.forEach(user => { %>
-              <tr>
-                <td class="text-center">
-                  <input type="checkbox" name="ids" value="<%= user.id %>" class="form-check-input user-select-checkbox" />
+
+              <% } else { users.forEach(user => { %>
+              <!-- User Row -->
+              <tr class="border-b last:border-0 hover:bg-gray-50 transition">
+
+                <!-- Checkbox -->
+                <td class="px-4 py-3 text-center">
+                  <input type="checkbox" name="ids" value="<%= user.id %>"
+                    class="user-select-checkbox size-4 rounded border-gray-400 focus:ring-blue-500">
                 </td>
-                <td class="text-center fw-bold">#<%= user.id %></td>
-                <td class="fw-semibold"><%= user.name %></td>
-                <td><%= user.email %></td>
-                <td class="text-center">
-                  <div class="btn-group" role="group">
-                    <a href="/users/<%= user.id %>" class="btn btn-info btn-sm" title="View Details">
-                      <i class="bi bi-eye-fill"></i>
+
+                <!-- ID -->
+                <td class="px-4 py-3 text-center font-semibold text-gray-700">
+                  #<%= user.id %>
+                </td>
+
+                <!-- Name -->
+                <td class="px-4 py-3 font-medium text-gray-800">
+                  <%= user.name %>
+                </td>
+
+                <!-- Email -->
+                <td class="px-4 py-3 text-gray-700">
+                  <%= user.email %>
+                </td>
+
+                <!-- Actions yeh wala-->
+                <td class="px-4 py-3">
+                  <div class="flex justify-center gap-2">
+
+                    <!-- View -->
+                    <a href="/users/<%= user.id %>"
+                      class="bg-cyan-600 hover:bg-cyan-700 text-white p-2 rounded-md transition"
+                      title="View Details">
+
+                      <!-- Heroicon: Eye -->
+                      <svg xmlns="http://www.w3.org/2000/svg" class="size-4" fill="none"
+                        viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M2.25 12C3.75 7.5 7.5 4.5 12 4.5S20.25 7.5 21.75 12C20.25 16.5 16.5 19.5 12 19.5S3.75 16.5 2.25 12z" />
+                        <circle cx="12" cy="12" r="3" />
+                      </svg>
                     </a>
-                    <button class="btn btn-warning btn-sm" onclick="openEditModal('<%= user.id %>', '<%= user.name %>', '<%= user.email %>')" title="Edit User">
-                      <i class="bi bi-pencil-fill"></i>
+
+                    <!-- Edit -->
+                    <button onclick="openEditModal('<%= user.id %>', '<%= user.name %>', '<%= user.email %>')"
+                      class="bg-yellow-500 hover:bg-yellow-600 cursor-pointer text-white p-2 rounded-md transition"
+                      title="Edit User">
+                      <!-- Heroicon: Pencil -->
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                      </svg>
+
                     </button>
-                    <form action="/delete/<%= user.id %>" method="POST" style="display:inline;">
-                      <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete <%= user.name %>?')" title="Delete User">
-                        <i class="bi bi-trash-fill"></i>
+
+                    <!-- Delete -->
+                    <form action="/delete/<%= user.id %>" method="POST" class="inline">
+                      <button type="submit"
+                        class="bg-red-600 hover:bg-red-700 text-white p-2 cursor-pointer rounded-md transition"
+                        onclick="return confirm('Are you sure you want to delete <%= user.name %>?')"
+                        title="Delete User">
+                        <!-- Heroicon: Trash -->
+                        <svg xmlns="http://www.w3.org/2000/svg" class="size-4" fill="none"
+                          viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M14.74 9l-.35 9m-4.78 0L9.26 9m9.46-3.21L18.16 19.2A2 2 0 0 1 16.17 21H7.83a2 2 0 0 1-1.99-1.8L5.28 5.79m4.94-.59h3.56M4.5 5.79h15" />
+                        </svg>
                       </button>
                     </form>
+
                   </div>
                 </td>
+
               </tr>
-            <% }) } %>
-          </tbody>
-        </table>
-      </div>
+              <% }) } %>
+
+            </tbody>
+
+          </table>
+        </div>
+
       </form>
     </div>
 
     <!-- Pagination -->
     <% if (totalPages > 1) { %>
-      <nav aria-label="User pagination" class="mt-4">
-        <ul class="pagination justify-content-center">
-          <% if (currentPage > 1) { %>
-            <li class="page-item">
-              <a class="page-link" href="?page=<%= currentPage - 1 %>&search=<%= (typeof search !== 'undefined' ? search : '') %>&filter=<%= (typeof filter !== 'undefined' ? filter : '') %>&limit=<%= limit %>&sort=<%= currentSort %>&direction=<%= currentDirection %>">Previous</a>
-            </li>
-          <% } %>
+    <nav aria-label="User pagination" class="mt-6">
+      <ul class="flex items-center justify-center gap-2">
 
-          <% for (let i = Math.max(1, currentPage - 2); i <= Math.min(totalPages, currentPage + 2); i++) { %>
-            <li class="page-item <%= i === currentPage ? 'active' : '' %>">
-              <a class="page-link" href="?page=<%= i %>&search=<%= (typeof search !== 'undefined' ? search : '') %>&filter=<%= (typeof filter !== 'undefined' ? filter : '') %>&limit=<%= limit %>&sort=<%= currentSort %>&direction=<%= currentDirection %>"><%= i %></a>
-            </li>
-          <% } %>
+        <% if (currentPage > 1) { %>
+        <li>
+          <a href="?page=<%= currentPage - 1 %>&search=<%= search || '' %>&filter=<%= filter || '' %>&limit=<%= limit %>&sort=<%= currentSort %>&direction=<%= currentDirection %>"
+            class="px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-100 transition">
+            Previous
+          </a>
+        </li>
+        <% } %>
 
-          <% if (currentPage < totalPages) { %>
-            <li class="page-item">
-              <a class="page-link" href="?page=<%= currentPage + 1 %>&search=<%= (typeof search !== 'undefined' ? search : '') %>&filter=<%= (typeof filter !== 'undefined' ? filter : '') %>&limit=<%= limit %>&sort=<%= currentSort %>&direction=<%= currentDirection %>">Next</a>
-            </li>
-          <% } %>
-        </ul>
-      </nav>
+        <% for (let i = Math.max(1, currentPage - 2); i <= Math.min(totalPages, currentPage + 2); i++) { %>
+        <li>
+          <a href="?page=<%= i %>&search=<%= search || '' %>&filter=<%= filter || '' %>&limit=<%= limit %>&sort=<%= currentSort %>&direction=<%= currentDirection %>"
+            class="px-3 py-2 rounded-md border border-gray-300 transition
+            <%= i === currentPage ? 'bg-blue-600 text-white border-blue-600' : 'hover:bg-gray-100' %>">
+            <%= i %>
+          </a>
+        </li>
+        <% } %>
+
+        <% if (currentPage < totalPages) { %>
+        <li>
+          <a href="?page=<%= currentPage + 1 %>&search=<%= search || '' %>&filter=<%= filter || '' %>&limit=<%= limit %>&sort=<%= currentSort %>&direction=<%= currentDirection %>"
+            class="px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-100 transition">
+            Next
+          </a>
+        </li>
+        <% } %>
+
+      </ul>
+    </nav>
     <% } %>
 
-    <!-- Upload status messages are now shown via Bootstrap toasts (see script block below). -->
+    <!-- Footer -->
+    <div class="text-center mt-6">
+      <p class="text-gray-500">
+        Showing <%= users.length %> of <%= totalUsers %> users
+      </p>
+    </div>
+<!-- ========================= -->
+<!--   PREMIUM TAILWIND MODALS -->
+<!-- ========================= -->
 
-    <div class="text-center mt-4">
-      <p class="text-muted">Showing <%= users.length %> of <%= totalUsers %> users</p>
-      <a href="/" class="nav-link">← Back to Dashboard</a>
+<!-- View User Modal -->
+<div id="viewModal"
+     class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden items-center justify-center z-100 transition-opacity duration-200">
+
+  <div class="bg-white w-full max-w-md rounded-lg shadow-lg p-6
+              transform transition-all duration-200 scale-95 opacity-0"
+       id="viewModalContent">
+
+    <!-- Modal Header -->
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-xl font-bold text-gray-800">User Details</h2>
+
+      <button onclick="closeViewModal()"
+        class="text-gray-600 hover:text-gray-800 transition">
+        <!-- Heroicon: X -->
+        <svg xmlns="http://www.w3.org/2000/svg" class="size-6" fill="none"
+             viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round"
+                d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <div id="viewModalBody" class="text-gray-700 space-y-2">
+      <!-- Filled by JS -->
+    </div>
+
+    <div class="mt-5 text-right">
+      <button onclick="closeViewModal()"
+        class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md">
+        Close
+      </button>
     </div>
   </div>
+</div>
 
-  <!-- View Modal -->
-  <div class="modal fade" id="viewModal" tabindex="-1">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header"><h5>User Details</h5></div>
-        <div class="modal-body" id="viewUserBody"></div>
-        <div class="modal-footer">
-          <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        </div>
+<!-- Edit User Modal -->
+<div id="editModal"
+     class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden items-center justify-center z-200 transition-opacity duration-200">
+
+  <div class="bg-white w-full max-w-md rounded-lg shadow-lg p-6
+              transform transition-all duration-200 scale-95 opacity-0"
+       id="editModalContent">
+
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-xl font-bold text-gray-800">Edit User</h2>
+
+      <button onclick="closeEditModal()"
+        class="text-gray-600 hover:text-gray-800 transition">
+        <svg xmlns="http://www.w3.org/2000/svg" class="size-6" fill="none"
+             viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round"
+                d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <form id="editUserForm" method="POST">
+
+      <input type="hidden" name="id" id="editUserId">
+
+      <div class="mb-3">
+        <label class="block mb-1 font-medium">Name</label>
+        <input type="text" name="name" id="editUserName"
+               class="px-3 py-2 border border-gray-300 rounded-md w-full focus:ring-2 focus:ring-blue-500">
       </div>
-    </div>
-  </div>
 
-  <!-- Edit Modal -->
-  <div class="modal fade" id="editModal" tabindex="-1">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <form id="editForm">
-          <div class="modal-header"><h5>Edit User</h5></div>
-          <div class="modal-body">
-            <input type="hidden" id="editId" />
-            <div class="mb-3">
-              <label>Name</label>
-              <input type="text" id="editName" class="form-control" required />
-            </div>
-            <div class="mb-3">
-              <label>Email</label>
-              <input type="email" id="editEmail" class="form-control" required />
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="submit" class="btn btn-success">Save</button>
-            <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          </div>
-        </form>
+      <div class="mb-3">
+        <label class="block mb-1 font-medium">Email</label>
+        <input type="email" name="email" id="editUserEmail"
+               class="px-3 py-2 border border-gray-300 rounded-md w-full focus:ring-2 focus:ring-blue-500">
       </div>
-    </div>
+
+      <div class="mt-5 flex justify-end gap-2">
+        <button type="button" onclick="closeEditModal()"
+          class="px-4 py-2 border border-gray-300 text-gray-600 hover:bg-gray-100 rounded-md">
+          Cancel
+        </button>
+
+        <button type="submit"
+          class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md">
+          Save Changes
+        </button>
+      </div>
+    </form>
+
   </div>
+</div>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- ========================= -->
+<!--       TAILWIND TOASTS     -->
+<!-- ========================= -->
+<script>
+function showToast(message, type = "info") {
+  const container = document.getElementById("toastContainer");
 
-  <script>
-    // Generic Bootstrap toast helper
-    function showToast(variant, title, message) {
-      var container = document.getElementById('toastContainer');
-      if (!container) return;
+  const colors = {
+    success: "bg-green-600",
+    danger: "bg-red-600",
+    warning: "bg-yellow-500",
+    info: "bg-blue-600"
+  };
 
-      var toastEl = document.createElement('div');
-      toastEl.className = 'toast align-items-center text-bg-' + variant + ' border-0 mb-2';
-      toastEl.setAttribute('role', 'alert');
-      toastEl.setAttribute('aria-live', 'assertive');
-      toastEl.setAttribute('aria-atomic', 'true');
+  const toast = document.createElement("div");
+  toast.className =`text-white px-4 py-3 rounded shadow flex items-center gap-2 animate-fade-in-up ${colors[type]}`;
 
-      toastEl.innerHTML =
-        '<div class="d-flex">' +
-          '<div class="toast-body">' +
-            '<strong>' + title + ':</strong> ' + message +
-          '</div>' +
-          '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>' +
-        '</div>';
+  toast.innerHTML = `
+      <span>\${message}</span>
+      <button onclick="this.parentElement.remove()" class="ml-2 hover:text-gray-300">
+        &times;
+      </button>
+    `;
 
-      container.appendChild(toastEl);
+  container.appendChild(toast);
 
-      var toast = new bootstrap.Toast(toastEl, { delay: 4000 });
-      toast.show();
+  // Auto-hide after 3 seconds
+  setTimeout(() => {
+    toast.style.opacity = "0";
+    toast.style.transform = "translateY(-8px)";
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
+</script>
 
-      toastEl.addEventListener('hidden.bs.toast', function () {
-        toastEl.remove();
-      });
-    }
+<!-- ========================= -->
+<!--      MODAL + PAGE JS      -->
+<!-- ========================= -->
+<script>
+// ===== ANIMATION HELPERS =====
+function animateModalOpen(modal, content) {
+  modal.classList.remove("hidden");
+  setTimeout(() => {
+    modal.classList.add("flex");
+    content.classList.remove("opacity-0", "scale-95");
+  }, 10);
+}
 
-    function openEditModal(id, name, email) {
-      document.getElementById('editId').value = id;
-      document.getElementById('editName').value = name;
-      document.getElementById('editEmail').value = email;
-      new bootstrap.Modal(document.getElementById('editModal')).show();
-    }
+function animateModalClose(modal, content) {
+  content.classList.add("opacity-0", "scale-95");
+  setTimeout(() => {
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+  }, 150);
+}
 
-    document.getElementById('editForm').addEventListener('submit', async function (e) {
-      e.preventDefault();
-      const id = document.getElementById('editId').value;
-      const name = document.getElementById('editName').value;
-      const email = document.getElementById('editEmail').value;
+// ===== VIEW MODAL =====
+function openViewModal(name, email, id) {
+  document.getElementById("viewModalBody").innerHTML = `
+    <p><strong>ID:</strong> ${id}</p>
+    <p><strong>Name:</strong> ${name}</p>
+    <p><strong>Email:</strong> ${email}</p>
+  `;
 
-      try {
-        const response = await fetch(`/update/${id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, email }),
-        });
+  animateModalOpen(
+    document.getElementById("viewModal"),
+    document.getElementById("viewModalContent")
+  );
+}
 
-        if (response.ok) {
-          showToast('success', 'User updated', 'User updated successfully');
-          setTimeout(function () { location.reload(); }, 800);
-        } else {
-          showToast('danger', 'Update failed', 'There was an error updating the user');
-        }
-      } catch (err) {
-        console.error(err);
-        showToast('danger', 'Update failed', 'Unexpected error while updating the user');
-      }
-    });
+function closeViewModal() {
+  animateModalClose(
+    document.getElementById("viewModal"),
+    document.getElementById("viewModalContent")
+  );
+}
 
-    // File upload handling (select then click Upload)
-    (function () {
-      var fileInput = document.getElementById('fileInput');
-      var chooseBtn = document.getElementById('chooseFileBtn');
-      var uploadBtn = document.getElementById('uploadBtn');
-      var fileNameLabel = document.getElementById('selectedFileName');
+// ===== EDIT MODAL =====
+function openEditModal(id, name, email) {
+  document.getElementById("editUserId").value = id;
+  document.getElementById("editUserName").value = name;
+  document.getElementById("editUserEmail").value = email;
 
-      if (chooseBtn && fileInput) {
-        chooseBtn.addEventListener('click', function () {
-          fileInput.click();
-        });
-      }
+  // Set dynamic action URL
+  document.getElementById("editUserForm").action = "/edit/" + id;
 
-      if (fileInput && uploadBtn) {
-        fileInput.addEventListener('change', function () {
-          if (this.files.length > 0) {
-            var name = this.files[0].name;
-            console.log('File selected:', name);
-            uploadBtn.disabled = false;
-            if (fileNameLabel) {
-              fileNameLabel.textContent = name;
-            }
-          } else {
-            uploadBtn.disabled = true;
-            if (fileNameLabel) {
-              fileNameLabel.textContent = '';
-            }
-          }
-        });
-      }
-    })();
+  animateModalOpen(
+    document.getElementById("editModal"),
+    document.getElementById("editModalContent")
+  );
+}
 
-    // Bulk delete handlers
-    (function () {
-      var selectAll = document.getElementById('selectAll');
-      var bulkBtn = document.getElementById('bulkDeleteBtn');
-      var form = document.getElementById('bulkDeleteForm');
+function closeEditModal() {
+  animateModalClose(
+    document.getElementById("editModal"),
+    document.getElementById("editModalContent")
+  );
+}
 
-      if (selectAll) {
-        selectAll.addEventListener('change', function () {
-          var checkboxes = document.querySelectorAll('.user-select-checkbox');
-          checkboxes.forEach(function (cb) { cb.checked = selectAll.checked; });
-        });
-      }
+// Close modals with ESC key
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") {
+    closeViewModal();
+    closeEditModal();
+  }
+});
 
-      if (bulkBtn && form) {
-        bulkBtn.addEventListener('click', function () {
-          var checkboxes = Array.prototype.slice.call(document.querySelectorAll('.user-select-checkbox'));
-          var selected = checkboxes.filter(function (cb) { return cb.checked; });
+// ===== SELECT ALL CHECKBOXES =====
+const selectAll = document.getElementById("selectAll");
+const checkboxes = document.querySelectorAll(".user-select-checkbox");
+const bulkDeleteBtn = document.getElementById("bulkDeleteBtn");
 
-          if (selected.length === 0) {
-            showToast('warning', 'No users selected', 'Please select at least one user to delete.');
-            return;
-          }
+// Function to update the Delete Selected button state
+function updateBulkDeleteBtn() {
+  const anyChecked = [...document.querySelectorAll(".user-select-checkbox")].some(cb => cb.checked);
+  bulkDeleteBtn.disabled = !anyChecked;
+}
 
-          if (!confirm('Are you sure you want to delete ' + selected.length + ' selected user(s)?')) {
-            return;
-          }
+// Event: Select All checkbox
+selectAll?.addEventListener("change", () => {
+  document.querySelectorAll(".user-select-checkbox").forEach(cb => (cb.checked = selectAll.checked));
+  updateBulkDeleteBtn();
+});
 
-          form.submit();
-        });
-      }
-    })();
+// Event: Individual checkboxes
+document.querySelectorAll(".user-select-checkbox").forEach(cb => {
+  cb.addEventListener("change", updateBulkDeleteBtn);
+});
 
-    // Server-side upload & bulk-delete status -> toasts
-    document.addEventListener('DOMContentLoaded', function () {
-      <% if (typeof upload !== 'undefined' && upload) { %>
-        <% if (upload === 'success') { %>
-          showToast(
-            'success',
-            'Upload complete',
-            'File uploaded and processed successfully.'<% if (typeof imported !== "undefined" && imported) { %> + ' Imported: <%= imported %>, Skipped: <%= skipped || 0 %>, Errors: <%= errors || 0 %>.'<% } %>
-          );
-          setTimeout(function () { window.location.href = '/users'; }, 3000);
-        <% } else if (upload === 'no-file') { %>
-          showToast('warning', 'No file', 'No file was selected for upload.');
-        <% } else if (upload === 'invalid-type') { %>
-          showToast('danger', 'Invalid file', 'Invalid file type. Please upload a CSV file.');
-        <% } else if (upload === 'file-too-large') { %>
-          showToast('danger', 'File too large', 'File is too large. Maximum size is 5MB.');
-        <% } else if (upload === 'empty-file') { %>
-          showToast('warning', 'Empty file', 'The uploaded file is empty.');
-        <% } else if (upload === 'insufficient-data') { %>
-          showToast('warning', 'Insufficient data', 'CSV file must contain at least a header row and one data row.');
-        <% } else if (upload === 'missing-columns') { %>
-          showToast('danger', 'Missing columns', "CSV file must contain 'name' and 'email' columns.");
-        <% } else if (upload === 'partial-success') { %>
-          showToast('warning', 'Partial success', 'File processed with some errors. Check the console logs for details.');
-        <% } else if (upload === 'no-new-users') { %>
-          showToast('info', 'No new users', 'No new users were imported. All records may already exist or be invalid.');
-        <% } else if (upload === 'server-error') { %>
-          showToast('danger', 'Server error', 'Server error occurred during file processing. Please try again.');
-        <% } %>
-      <% } %>
+// ===== BULK DELETE =====
+bulkDeleteBtn?.addEventListener("click", () => {
+  const selected = [...document.querySelectorAll(".user-select-checkbox")].filter(cb => cb.checked);
 
-      <% if (typeof bulk !== 'undefined' && bulk) { %>
-        <% if (bulk === 'deleted') { %>
-          showToast('success', 'Users deleted', '<%= deletedCount || 0 %> user(s) deleted successfully.');
-        <% } else if (bulk === 'none-selected') { %>
-          showToast('warning', 'No users selected', 'Please select at least one user to delete.');
-        <% } else if (bulk === 'server-error') { %>
-          showToast('danger', 'Delete failed', 'An error occurred while deleting users.');
-        <% } %>
-      <% } %>
-    });
-  </script>
+  if (selected.length === 0) {
+    return showToast("No users selected!", "warning");
+  }
+
+  if (confirm("Delete " + selected.length + " user(s)?")) {
+    document.getElementById("bulkDeleteForm").submit();
+  }
+});
+
+// Initial button state
+updateBulkDeleteBtn();
+
+// ===== FILE UPLOADER =====
+const fileInput = document.getElementById("fileInput");
+document.getElementById("chooseFileBtn")?.addEventListener("click", () =>
+  fileInput.click()
+);
+
+fileInput?.addEventListener("change", e => {
+  const file = e.target.files[0];
+  document.getElementById("uploadBtn").disabled = !file;
+  document.getElementById("selectedFileName").textContent =
+    file ? file.name : "";
+});
+</script>
+
 </body>
-</html>  
+</html>
