@@ -2,19 +2,21 @@ pipeline {
     agent any
 
     environment {
-        INVENTORY = "inventories/hosts"
-        PLAYBOOK = "deploy-node-nginx.yml"
+        ANSIBLE_DIR = "/home/anurag/ansible-project"   // Local Ansible directory
+        INVENTORY = "/home/anurag/ansible-project/inventories/hosts"
+        PLAYBOOK = "/home/anurag/ansible-project/deploy-node-nginx.yml"
         SSH_KEY_ID = "ansible_ssh_key"
     }
 
     stages {
         stage('Checkout Code') {
             steps {
-                git branch: "${env.BRANCH_NAME}", url: 'https://github.com/strangecodee/crud-app.git'
+                checkout scm
+                echo "Deploying branch: ${env.BRANCH_NAME}"
             }
         }
 
-        stage('Install Ansible if not present') {
+        stage('Install Ansible if missing') {
             steps {
                 sh '''
                 if ! command -v ansible >/dev/null; then
@@ -28,6 +30,7 @@ pipeline {
         stage('Deploy using Ansible') {
             steps {
                 script {
+                    def target_host
                     if (env.BRANCH_NAME == 'main') {
                         target_host = "production"
                     } else if (env.BRANCH_NAME == 'staging') {
@@ -35,11 +38,12 @@ pipeline {
                     } else if (env.BRANCH_NAME == 'dev') {
                         target_host = "testing"
                     } else {
-                        error("This branch is not meant for deployment")
+                        error("This branch is not meant for deployment: ${env.BRANCH_NAME}")
                     }
 
                     withCredentials([sshUserPrivateKey(credentialsId: SSH_KEY_ID, keyFileVariable: 'SSH_KEY')]) {
                         sh """
+                        cd ${ANSIBLE_DIR}
                         export ANSIBLE_HOST_KEY_CHECKING=False
                         ansible-playbook ${PLAYBOOK} -i ${INVENTORY} --limit ${target_host}
                         """
@@ -51,6 +55,6 @@ pipeline {
 
     post {
         success { echo "Deployment Successful!" }
-        failure { echo "Deployment Failed! Check logs." }
+        failure { echo "Deployment Failed — Check Console Logs" }
     }
 }
