@@ -2,11 +2,11 @@ pipeline {
     agent any
 
     environment {
-        ANSIBLE_DIR = "/home/anurag/ansible-project"   // Local Ansible directory
-        INVENTORY = "/home/anurag/ansible-project/inventories/hosts"
-        PLAYBOOK = "/home/anurag/ansible-project/deploy-node-nginx.yml"
-        SSH_KEY_ID = "ansible_ssh_key"
-    }
+    ANSIBLE_DIR = "/opt/ansible-project"
+    INVENTORY = "/opt/ansible-project/inventories/hosts"
+    PLAYBOOK = "/opt/ansible-project/deploy-node-nginx.yml"
+    SSH_KEY_ID = "ansible_ssh_key"
+}
 
     stages {
         stage('Checkout Code') {
