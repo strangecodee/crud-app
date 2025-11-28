@@ -205,3 +205,5 @@ This project is licensed under the ISC License - see the package.json file for d
 ## Support
 
 For support or questions, please open an issue in the repository.
+
+--Developed by Anurag
