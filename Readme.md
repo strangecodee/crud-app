@@ -1,3 +1,7 @@
+```
+
+```
+
 # User Management CRUD Application
 
 A comprehensive User Management system built with Node.js, Express, Sequelize, MySQL, and EJS. This application provides full CRUD operations, user authentication, bulk actions, CSV import/export, and more.
@@ -71,6 +75,7 @@ Before running this application, make sure you have the following installed:
    ```
 
 5. **Build CSS:**
+
    ```bash
    npm run build:css
    ```
@@ -91,9 +96,9 @@ Before running this application, make sure you have the following installed:
 
 3. **Access the application:**
    Open your browser and navigate to `http://localhost:5000`
-
 4. **Login:**
    Use the default admin credentials (or those set in your `.env` file):
+
    - Username: admin
    - Password: password
 
