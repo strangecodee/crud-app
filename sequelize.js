@@ -8,8 +8,9 @@ const sequelize = new Sequelize(
   process.env.DB_PASS,
   {
     host: process.env.DB_HOST,
-    dialect: "mysql",
-    logging: (msg) => console.log(`[SQL] ${msg}`), // Sequelize SQL logging
+    port: process.env.DB_PORT,
+    dialect: "postgres",
+    logging: (msg) => console.log(`[SQL] ${msg}`),
     pool: { max: 5, min: 0, acquire: 30000, idle: 10000 },
   }
 );
@@ -17,13 +18,18 @@ const sequelize = new Sequelize(
 (async () => {
   try {
     await sequelize.authenticate();
-    console.log(`[${new Date().toISOString()}] 🟢 Database Connected: ${process.env.DB_NAME}`);
+    console.log(
+      `[${new Date().toISOString()}] 🟢 PostgreSQL Connected: ${
+        process.env.DB_NAME
+      }`
+    );
     await sequelize.sync({ alter: true });
     console.log(`[${new Date().toISOString()}] 📦 Tables Synchronized`);
   } catch (error) {
-    console.error(`[${new Date().toISOString()}] 🔴 DB Error: ${error.message}`);
+    console.error(
+      `[${new Date().toISOString()}] 🔴 DB Error: ${error.message}`
+    );
   }
 })();
 
 export default sequelize;
-
