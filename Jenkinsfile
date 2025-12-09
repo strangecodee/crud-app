@@ -4,58 +4,61 @@ pipeline {
     environment {
         ANSIBLE_DIR = "/opt/ansible-project"
         INVENTORY = "${ANSIBLE_DIR}/inventories/hosts"
-        PLAYBOOK = "${ANSIBLE_DIR}/deploy-node-nginx.yml"
-        SSH_KEY_ID = "ansible_ssh_key"      // Stored in Jenkins Credentials
+        DEPLOY_PLAYBOOK = "${ANSIBLE_DIR}/deploy-node-nginx.yml"
+        UPDATE_PLAYBOOK = "${ANSISBLE_DIR}/update-node.yml"
+        SSH_KEY_ID = "ansible_ssh_key"
     }
 
     stages {
+
         stage('Checkout Code') {
             steps {
                 checkout scm
-                echo "🔄 Deploying from branch: ${env.BRANCH_NAME}"
-            }
-        }
-
-        stage('Install Ansible if missing') {
-            steps {
-                sh '''
-                if ! command -v ansible >/dev/null; then
-                  echo "⚙️ Installing Ansible..."
-                  sudo apt update
-                  sudo apt install -y ansible
-                else
-                  echo "✔️ Ansible already installed"
-                fi
-                '''
+                echo "Deploying branch: ${env.BRANCH_NAME}"
             }
         }
 
         stage('Determine Target Host') {
             steps {
                 script {
-                    if (env.BRANCH_NAME == 'main') {
-                        TARGET_HOST = "production"
-                    } else if (env.BRANCH_NAME == 'staging') {
-                        TARGET_HOST = "staging"
-                    } else if (env.BRANCH_NAME == 'dev') {
-                        TARGET_HOST = "testing"
-                    } else {
-                        error("❌ Branch ${env.BRANCH_NAME} is not allowed for deployment.")
+
+                    // Define target Ansible group AND SSH host
+                    if (env.BRANCH_NAME == 'main') { 
+                        GROUP = "production"
+                        SSH_HOST = "server2"        // from inventory
+                    } 
+                    else if (env.BRANCH_NAME == 'staging') { 
+                        GROUP = "staging"
+                        SSH_HOST = "server1"
+                    } 
+                    else if (env.BRANCH_NAME == 'dev') { 
+                        GROUP = "testing"
+                        SSH_HOST = "server3"
+                    } 
+                    else { 
+                        error("❌ Branch ${env.BRANCH_NAME} not allowed!")
                     }
-                    echo "🚀 Deploying to environment: ${TARGET_HOST}"
+
+                    echo "Using Ansible group: ${GROUP}"
+                    echo "Using SSH host: ${SSH_HOST}"
                 }
             }
         }
 
-        stage('Deploy using Ansible') {
+        stage('Deploy/Update via Ansible') {
             steps {
                 script {
                     sshagent(credentials: [SSH_KEY_ID]) {
+
                         sh """
-                        cd ${ANSIBLE_DIR}
-                        export ANSIBLE_HOST_KEY_CHECKING=False
-                        echo "🚀 Running Ansible Playbook for ${TARGET_HOST}"
-                        ansible-playbook ${PLAYBOOK} -i ${INVENTORY} --limit ${TARGET_HOST} -vvv
+                        # Check if app exists on remote host
+                        if ssh ${SSH_HOST} 'test -d /var/www/crud-app'; then
+                          echo 'App exists — running update playbook'
+                          ansible-playbook ${UPDATE_PLAYBOOK} -i ${INVENTORY} --limit ${GROUP}
+                        else
+                          echo 'First deploy — running full deploy playbook'
+                          ansible-playbook ${DEPLOY_PLAYBOOK} -i ${INVENTORY} --limit ${GROUP}
+                        fi
                         """
                     }
                 }
@@ -65,10 +68,10 @@ pipeline {
 
     post {
         success {
-            echo "🎉 Deployment Successful on ${TARGET_HOST}!"
+            echo "🎉 Deployment completed on host group: ${GROUP}"
         }
         failure {
-            echo "❌ Deployment Failed on ${TARGET_HOST}. Check logs and fix issues."
+            echo "❌ Deployment failed — check logs"
         }
     }
 }
