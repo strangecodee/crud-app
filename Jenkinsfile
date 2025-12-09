@@ -5,11 +5,12 @@ pipeline {
         ANSIBLE_DIR = "/opt/ansible-project"
         INVENTORY = "${ANSIBLE_DIR}/inventories/hosts"
         DEPLOY_PLAYBOOK = "${ANSIBLE_DIR}/deploy-node-nginx.yml"
-        UPDATE_PLAYBOOK = "${ANSIBLE_DIR}/update-node.yml"
+        UPDATE_PLAYBOOK = "${ANSISBLE_DIR}/update-node.yml"
         SSH_KEY_ID = "ansible_ssh_key"
     }
 
     stages {
+
         stage('Checkout Code') {
             steps {
                 checkout scm
@@ -20,10 +21,26 @@ pipeline {
         stage('Determine Target Host') {
             steps {
                 script {
-                    if (env.BRANCH_NAME == 'main') { TARGET_HOST = "production" }
-                    else if (env.BRANCH_NAME == 'staging') { TARGET_HOST = "staging" }
-                    else if (env.BRANCH_NAME == 'dev') { TARGET_HOST = "testing" }
-                    else { error("❌ Branch ${env.BRANCH_NAME} not allowed!") }
+
+                    // Define target Ansible group AND SSH host
+                    if (env.BRANCH_NAME == 'main') { 
+                        GROUP = "production"
+                        SSH_HOST = "server2"        // from inventory
+                    } 
+                    else if (env.BRANCH_NAME == 'staging') { 
+                        GROUP = "staging"
+                        SSH_HOST = "server1"
+                    } 
+                    else if (env.BRANCH_NAME == 'dev') { 
+                        GROUP = "testing"
+                        SSH_HOST = "server3"
+                    } 
+                    else { 
+                        error("❌ Branch ${env.BRANCH_NAME} not allowed!")
+                    }
+
+                    echo "Using Ansible group: ${GROUP}"
+                    echo "Using SSH host: ${SSH_HOST}"
                 }
             }
         }
@@ -33,12 +50,14 @@ pipeline {
                 script {
                     sshagent(credentials: [SSH_KEY_ID]) {
 
-                        // If first deployment (no app directory), run full playbook
                         sh """
-                        if ssh $TARGET_HOST 'test -d /var/www/crud-app'; then
-                          ansible-playbook ${UPDATE_PLAYBOOK} -i ${INVENTORY} --limit ${TARGET_HOST}
+                        # Check if app exists on remote host
+                        if ssh ${SSH_HOST} 'test -d /var/www/crud-app'; then
+                          echo 'App exists — running update playbook'
+                          ansible-playbook ${UPDATE_PLAYBOOK} -i ${INVENTORY} --limit ${GROUP}
                         else
-                          ansible-playbook ${DEPLOY_PLAYBOOK} -i ${INVENTORY} --limit ${TARGET_HOST}
+                          echo 'First deploy — running full deploy playbook'
+                          ansible-playbook ${DEPLOY_PLAYBOOK} -i ${INVENTORY} --limit ${GROUP}
                         fi
                         """
                     }
@@ -48,7 +67,11 @@ pipeline {
     }
 
     post {
-        success { echo "🎉 Code Updated Successfully on ${TARGET_HOST}!" }
-        failure { echo "❌ Update Failed — Check Logs" }
+        success {
+            echo "🎉 Deployment completed on host group: ${GROUP}"
+        }
+        failure {
+            echo "❌ Deployment failed — check logs"
+        }
     }
 }
