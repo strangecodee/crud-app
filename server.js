@@ -36,8 +36,12 @@ app.use(
 // Expose current user to views with fallback to empty object
 app.use((req, res, next) => {
   console.log("[Session Debug] req.session:", req.session);
-  res.locals.currentUser = req.session && req.session.user ? req.session.user : {};
-  console.log("[Session Debug] res.locals.currentUser:", res.locals.currentUser);
+  res.locals.currentUser =
+    req.session && req.session.user ? req.session.user : {};
+  console.log(
+    "[Session Debug] res.locals.currentUser:",
+    res.locals.currentUser
+  );
   next();
 });
 
@@ -63,7 +67,9 @@ const upload = multer({ storage });
 // Request Logger
 app.use((req, res, next) => {
   console.log(
-    `[${new Date().toISOString()}] 📩 ${req.method} ${req.originalUrl} | IP: ${req.ip}`
+    `[${new Date().toISOString()}] 📩 ${req.method} ${req.originalUrl} | IP: ${
+      req.ip
+    }`
   );
   next();
 });
@@ -72,6 +78,13 @@ app.use((req, res, next) => {
 function requireAuth(req, res, next) {
   if (req.session && req.session.user) {
     return next();
+  }
+  // Handle AJAX requests differently
+  if (
+    req.xhr ||
+    (req.headers.accept && req.headers.accept.includes("application/json"))
+  ) {
+    return res.status(401).json({ error: "Authentication required" });
   }
   return res.redirect("/login");
 }
@@ -82,7 +95,7 @@ app.get("/login", (req, res) => {
     return res.redirect("/");
   }
   const { error } = req.query;
-  res.render("login", { error: error || '' });
+  res.render("login", { error: error || "" });
 });
 
 app.post("/login", (req, res) => {
@@ -166,7 +179,20 @@ app.get("/", requireAuth, async (req, res) => {
 });
 
 app.get("/users", requireAuth, async (req, res) => {
-  const { search, filter, page = 1, limit = 10, upload, imported, skipped, errors, bulk, deletedCount, sort, direction } = req.query;
+  const {
+    search,
+    filter,
+    page = 1,
+    limit = 10,
+    upload,
+    imported,
+    skipped,
+    errors,
+    bulk,
+    deletedCount,
+    sort,
+    direction,
+  } = req.query;
 
   // Sanitize pagination values
   const pageNum = Math.max(1, parseInt(page, 10) || 1);
@@ -174,13 +200,13 @@ app.get("/users", requireAuth, async (req, res) => {
   const offset = (pageNum - 1) * limitNum;
 
   // Sanitize search text (trim & cap length)
-  let safeSearch = (search || '').toString().trim();
+  let safeSearch = (search || "").toString().trim();
   if (safeSearch.length > 100) {
     safeSearch = safeSearch.substring(0, 100);
   }
 
   // Sanitize filter field
-  const safeFilter = filter === 'name' || filter === 'email' ? filter : '';
+  const safeFilter = filter === "name" || filter === "email" ? filter : "";
 
   let whereClause = {};
   if (safeSearch) {
@@ -201,7 +227,8 @@ app.get("/users", requireAuth, async (req, res) => {
 
   // Sorting configuration
   const sortKey = (sort || "createdAt").toString();
-  const sortDir = (direction || "desc").toString().toLowerCase() === "asc" ? "ASC" : "DESC";
+  const sortDir =
+    (direction || "desc").toString().toLowerCase() === "asc" ? "ASC" : "DESC";
 
   let sortField;
   if (sortKey === "id") {
@@ -223,7 +250,9 @@ app.get("/users", requireAuth, async (req, res) => {
 
   const totalPages = Math.ceil(count / limitNum);
 
-  console.log(`[Users Page] Loaded ${users.length} users (page ${pageNum}/${totalPages})`);
+  console.log(
+    `[Users Page] Loaded ${users.length} users (page ${pageNum}/${totalPages})`
+  );
   res.render("users", {
     users,
     search: safeSearch,
@@ -236,7 +265,7 @@ app.get("/users", requireAuth, async (req, res) => {
     imported: imported ? parseInt(imported) : undefined,
     skipped: skipped ? parseInt(skipped) : undefined,
     errors: errors ? parseInt(errors) : undefined,
-    bulk: bulk || '',
+    bulk: bulk || "",
     deletedCount: deletedCount ? parseInt(deletedCount) : undefined,
     currentSort: sortField,
     currentDirection: sortDir.toLowerCase(),
@@ -262,7 +291,9 @@ app.get("/users/:id", requireAuth, async (req, res) => {
       return res.status(404).render("user-details", { user: null });
     }
 
-    console.log(`[User Details] 🟢 Rendering details for user ${user.id} (${user.name})`);
+    console.log(
+      `[User Details] 🟢 Rendering details for user ${user.id} (${user.name})`
+    );
     res.render("user-details", { user });
   } catch (err) {
     console.error(`[User Details] 🔴 Error: ${err.message}`);
@@ -296,7 +327,7 @@ app.post("/add", requireAuth, async (req, res) => {
   }
 });
 
-app.put("/update/:id", requireAuth, async (req, res) => {
+app.put("/update/:id", async (req, res) => {
   const { name, email } = req.body;
   try {
     const id = parseInt(req.params.id, 10);
@@ -307,7 +338,9 @@ app.put("/update/:id", requireAuth, async (req, res) => {
 
     const [updated] = await User.update({ name, email }, { where: { id } });
     updated
-      ? console.log(`[Update] 🟢 User ${req.params.id} updated to ${name} (${email})`)
+      ? console.log(
+          `[Update] 🟢 User ${req.params.id} updated to ${name} (${email})`
+        )
       : console.log(`[Update] ⚠️ User ID ${req.params.id} not found`);
     res.json({ message: "User updated successfully" });
   } catch (err) {
@@ -367,7 +400,9 @@ app.post("/users/bulk-delete", requireAuth, async (req, res) => {
     }
 
     const deleted = await User.destroy({ where: { id: numericIds } });
-    console.log(`[Bulk Delete] 🗑️ Deleted ${deleted} user(s): [${ids.join(", ")}]`);
+    console.log(
+      `[Bulk Delete] 🗑️ Deleted ${deleted} user(s): [${ids.join(", ")}]`
+    );
 
     res.redirect(`/users?bulk=deleted&deletedCount=${deleted}`);
   } catch (err) {
@@ -376,7 +411,7 @@ app.post("/users/bulk-delete", requireAuth, async (req, res) => {
   }
 });
 
-app.get("/user/:id", requireAuth, async (req, res) => {
+app.get("/user/:id", async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);
     if (!Number.isInteger(id) || id <= 0) {
@@ -404,7 +439,7 @@ app.get("/export", requireAuth, async (req, res) => {
     });
 
     const json2csvParser = new Parser();
-    const csv = json2csvParser.parse(users.map(user => user.toJSON()));
+    const csv = json2csvParser.parse(users.map((user) => user.toJSON()));
 
     res.header("Content-Type", "text/csv");
     res.attachment("users.csv");
@@ -424,11 +459,17 @@ app.post("/upload", requireAuth, upload.single("file"), async (req, res) => {
     return res.redirect("/users?upload=no-file");
   }
 
-  console.log(`[Upload] 📎 File uploaded: ${req.file.filename}, size: ${req.file.size} bytes, mimetype: ${req.file.mimetype}`);
+  console.log(
+    `[Upload] 📎 File uploaded: ${req.file.filename}, size: ${req.file.size} bytes, mimetype: ${req.file.mimetype}`
+  );
 
   try {
     // Validate file type
-    if (!req.file.mimetype.includes('text') && !req.file.mimetype.includes('csv') && !req.file.originalname.endsWith('.csv')) {
+    if (
+      !req.file.mimetype.includes("text") &&
+      !req.file.mimetype.includes("csv") &&
+      !req.file.originalname.endsWith(".csv")
+    ) {
       console.log(`[Upload] ❌ Invalid file type: ${req.file.mimetype}`);
       return res.redirect("/users?upload=invalid-type");
     }
@@ -441,7 +482,7 @@ app.post("/upload", requireAuth, upload.single("file"), async (req, res) => {
     }
 
     const filePath = path.join(__dirname, "uploads", req.file.filename);
-    const fileContent = fs.readFileSync(filePath, 'utf8');
+    const fileContent = fs.readFileSync(filePath, "utf8");
 
     // Check for empty file
     if (!fileContent.trim()) {
@@ -449,23 +490,27 @@ app.post("/upload", requireAuth, upload.single("file"), async (req, res) => {
       return res.redirect("/users?upload=empty-file");
     }
 
-    const lines = fileContent.split('\n').filter(line => line.trim());
+    const lines = fileContent.split("\n").filter((line) => line.trim());
     console.log(`[Upload] Processing CSV with ${lines.length} lines`);
 
     if (lines.length < 2) {
-      console.log(`[Upload] ❌ CSV file has insufficient data (only ${lines.length} lines)`);
+      console.log(
+        `[Upload] ❌ CSV file has insufficient data (only ${lines.length} lines)`
+      );
       return res.redirect("/users?upload=insufficient-data");
     }
 
     // Parse headers
-    const headers = parseCSVLine(lines[0]).map(h => h.trim().toLowerCase());
-    console.log(`[Upload] Headers found: ${headers.join(', ')}`);
+    const headers = parseCSVLine(lines[0]).map((h) => h.trim().toLowerCase());
+    console.log(`[Upload] Headers found: ${headers.join(", ")}`);
 
-    const nameIndex = headers.indexOf('name');
-    const emailIndex = headers.indexOf('email');
+    const nameIndex = headers.indexOf("name");
+    const emailIndex = headers.indexOf("email");
 
     if (nameIndex === -1 || emailIndex === -1) {
-      console.log(`[Upload] ❌ Required columns 'name' and 'email' not found in headers`);
+      console.log(
+        `[Upload] ❌ Required columns 'name' and 'email' not found in headers`
+      );
       return res.redirect("/users?upload=missing-columns");
     }
 
@@ -481,7 +526,7 @@ app.post("/upload", requireAuth, upload.single("file"), async (req, res) => {
 
       try {
         const values = parseCSVLine(line);
-        console.log(`[Upload] Processing line ${i}: ${values.join(' | ')}`);
+        console.log(`[Upload] Processing line ${i}: ${values.join(" | ")}`);
 
         if (values.length <= Math.max(nameIndex, emailIndex)) {
           console.log(`[Upload] ⚠️ Not enough columns in line ${i}`);
@@ -504,7 +549,9 @@ app.post("/upload", requireAuth, upload.single("file"), async (req, res) => {
         // Basic email validation
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(rawEmail)) {
-          console.log(`[Upload] ⚠️ Invalid email format in line ${i}: ${rawEmail}`);
+          console.log(
+            `[Upload] ⚠️ Invalid email format in line ${i}: ${rawEmail}`
+          );
           errors.push(`Line ${i}: Invalid email format`);
           errorCount++;
           continue;
@@ -512,7 +559,12 @@ app.post("/upload", requireAuth, upload.single("file"), async (req, res) => {
 
         // Check for reasonable name length
         if (rawName.length > 100) {
-          console.log(`[Upload] ⚠️ Name too long in line ${i}: ${rawName.substring(0, 50)}...`);
+          console.log(
+            `[Upload] ⚠️ Name too long in line ${i}: ${rawName.substring(
+              0,
+              50
+            )}...`
+          );
           errors.push(`Line ${i}: Name too long`);
           errorCount++;
           continue;
@@ -522,31 +574,38 @@ app.post("/upload", requireAuth, upload.single("file"), async (req, res) => {
         try {
           await User.create({
             name: rawName,
-            email: rawEmail
+            email: rawEmail,
           });
           importedCount++;
           console.log(`[Upload] ✅ Created user: ${rawName} (${rawEmail})`);
         } catch (dbErr) {
-          if (dbErr.name === 'SequelizeUniqueConstraintError') {
-            console.log(`[Upload] ⚠️ Duplicate user skipped: ${rawName} (${rawEmail})`);
+          if (dbErr.name === "SequelizeUniqueConstraintError") {
+            console.log(
+              `[Upload] ⚠️ Duplicate user skipped: ${rawName} (${rawEmail})`
+            );
             errors.push(`Line ${i}: Duplicate user`);
             skippedCount++;
           } else {
-            console.log(`[Upload] ⚠️ Database error for line ${i}: ${dbErr.message}`);
+            console.log(
+              `[Upload] ⚠️ Database error for line ${i}: ${dbErr.message}`
+            );
             errors.push(`Line ${i}: Database error - ${dbErr.message}`);
             errorCount++;
           }
         }
-
       } catch (parseErr) {
-        console.log(`[Upload] ⚠️ Parse error in line ${i}: ${parseErr.message}`);
+        console.log(
+          `[Upload] ⚠️ Parse error in line ${i}: ${parseErr.message}`
+        );
         errors.push(`Line ${i}: Parse error - ${parseErr.message}`);
         errorCount++;
       }
     }
 
     // Log summary
-    console.log(`[Upload] 📊 Summary: ${importedCount} imported, ${skippedCount} skipped, ${errorCount} errors`);
+    console.log(
+      `[Upload] 📊 Summary: ${importedCount} imported, ${skippedCount} skipped, ${errorCount} errors`
+    );
 
     // Store errors in session or redirect with status
     if (errorCount > 0) {
@@ -556,20 +615,24 @@ app.post("/upload", requireAuth, upload.single("file"), async (req, res) => {
 
     // Determine redirect based on results
     if (importedCount > 0) {
-      res.redirect(`/users?upload=success&imported=${importedCount}&skipped=${skippedCount}&errors=${errorCount}`);
+      res.redirect(
+        `/users?upload=success&imported=${importedCount}&skipped=${skippedCount}&errors=${errorCount}`
+      );
     } else if (errorCount > 0) {
       res.redirect("/users?upload=partial-success");
     } else {
       res.redirect("/users?upload=no-new-users");
     }
-
   } catch (err) {
     console.error(`[Upload] 🔴 Unexpected error: ${err.message}`);
     res.redirect("/users?upload=server-error");
   } finally {
     // Clean up uploaded file
     try {
-      if (req.file && fs.existsSync(path.join(__dirname, "uploads", req.file.filename))) {
+      if (
+        req.file &&
+        fs.existsSync(path.join(__dirname, "uploads", req.file.filename))
+      ) {
         fs.unlinkSync(path.join(__dirname, "uploads", req.file.filename));
         console.log(`[Upload] 🗑️ Cleaned up file: ${req.file.filename}`);
       }
@@ -592,9 +655,11 @@ app.get("/proxy/:url", requireAuth, async (req, res) => {
       return res.status(400).json({ error: "Invalid URL" });
     }
 
-    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
       console.log(`[Proxy Test] ⚠️ Blocked non-HTTP(S) URL: ${parsed.href}`);
-      return res.status(400).json({ error: "Only http and https URLs are allowed" });
+      return res
+        .status(400)
+        .json({ error: "Only http and https URLs are allowed" });
     }
 
     // Basic length guard to avoid abuse
@@ -606,9 +671,9 @@ app.get("/proxy/:url", requireAuth, async (req, res) => {
     console.log(`[Proxy Test] Requesting: ${parsed.href}`);
 
     const response = await fetch(parsed.href);
-    const contentType = response.headers.get('content-type');
+    const contentType = response.headers.get("content-type");
 
-    if (contentType && contentType.includes('application/json')) {
+    if (contentType && contentType.includes("application/json")) {
       const data = await response.json();
       res.json(data);
     } else {
@@ -624,7 +689,7 @@ app.get("/proxy/:url", requireAuth, async (req, res) => {
 // CSV parsing helper function
 function parseCSVLine(line) {
   const result = [];
-  let current = '';
+  let current = "";
   let inQuotes = false;
 
   for (let i = 0; i < line.length; i++) {
@@ -639,10 +704,10 @@ function parseCSVLine(line) {
         // Toggle quote state
         inQuotes = !inQuotes;
       }
-    } else if (char === ',' && !inQuotes) {
+    } else if (char === "," && !inQuotes) {
       // Field separator
       result.push(current);
-      current = '';
+      current = "";
     } else {
       current += char;
     }
@@ -663,7 +728,10 @@ app.use((req, res) => {
 app.use((err, req, res, next) => {
   console.error(`[Global Error] 🔴 ${err.message}`);
 
-  if (req.xhr || (req.headers.accept && req.headers.accept.includes('application/json'))) {
+  if (
+    req.xhr ||
+    (req.headers.accept && req.headers.accept.includes("application/json"))
+  ) {
     return res.status(500).json({ error: "Internal server error" });
   }
 
@@ -677,5 +745,7 @@ app.use((err, req, res, next) => {
 // Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () =>
-  console.log(`[${new Date().toISOString()}] ~ Anurag---> ~ Server running at http://localhost:${PORT}`)
+  console.log(
+    `[${new Date().toISOString()}] ~ Anurag---> ~ Server running at http://localhost:${PORT}`
+  )
 );
